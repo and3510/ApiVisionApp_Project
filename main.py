@@ -1,3 +1,6 @@
+# ----------- Bibliotecas -----------
+
+
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Security
 from pydantic import BaseModel
 from typing import Annotated
@@ -5,84 +8,85 @@ from sqlalchemy.orm import Session
 import shutil
 import os
 import face_recognition
-from dotenv import load_dotenv
 from fastapi.responses import JSONResponse
 import numpy as np
 from fastapi.security.api_key import APIKeyHeader
-from database import (
-    FichaSessionLocal,
-    IdentidadeSessionLocal
-)
-from functions.root import root
+from functions.clahe import aplicar_clahe
+from functions.dependencias import get_ficha_db, get_identidade_db
 from functions.auth_api_key import verificar_api_key
 import models as models
-import cv2  
+from firebase_admin import credentials, auth, initialize_app
+from jose import jwt
+from dotenv import load_dotenv
+from datetime import datetime, timedelta
+from auth_utils import verify_token  # ou de jwt_auth, se renomear
 
+load_dotenv()
 
+# 🔧 Inicializar Firebase Admin
+cred = credentials.Certificate("firebase_config.json")
+initialize_app(cred)
+
+# ----------- Carregar variáveis de ambiente -----------
 app = FastAPI()
 
-# ----------- Pydantic Models -----------
-
-class FichaCriminalBase(BaseModel):
-    cpf: str
-    ficha_criminal: str
-    foragido: bool = False
 
 # ----------- Dependências -----------
 
-def get_ficha_db():
-    db = FichaSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-def get_identidade_db():
-    db = IdentidadeSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 ficha_db_dependency = Annotated[Session, Depends(get_ficha_db)]
 identidade_db_dependency = Annotated[Session, Depends(get_identidade_db)]
 
-# ----------- Função de Melhoria de Imagem -----------
 
-def aplicar_clahe(imagem_path):
-    imagem_bgr = cv2.imread(imagem_path)
-    lab = cv2.cvtColor(imagem_bgr, cv2.COLOR_BGR2LAB)
-    l, a, b = cv2.split(lab)
-    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
-    cl = clahe.apply(l)
-    limg = cv2.merge((cl, a, b))
-    final = cv2.cvtColor(limg, cv2.COLOR_LAB2RGB)
-    return final
 
 # ---------- Rotas -----------
 
-@app.get("/")
-async def get_root():
-    return await root()
+
+class FirebaseToken(BaseModel):
+    firebase_token: str
 
 
-@app.post("/ficha_criminal/", dependencies=[Depends(verificar_api_key)])
-async def create_ficha_criminal(ficha: FichaCriminalBase, db: ficha_db_dependency, identidade_db: identidade_db_dependency):
-    cpf_existente = identidade_db.query(models.Identidade).filter(models.Identidade.cpf == ficha.cpf).first()
+@app.get("/usuario/perfil")
+def perfil_usuario(user_data: dict = Depends(verify_token)):
+    return {"mensagem": "Bem-vindo!", "usuario": user_data.get("sub")}
+
+@app.post("/auth/firebase")
+def auth_with_firebase(token_data: FirebaseToken):
+    try:
+        decoded_token = auth.verify_id_token(token_data.firebase_token)
+        user_id = decoded_token["uid"]
+
+        expire = datetime.utcnow() + timedelta(minutes=60)
+        jwt_payload = {
+            "sub": user_id,
+            "exp": expire
+        }
+        jwt_token = jwt.encode(jwt_payload, os.getenv("SECRET_KEY"), algorithm="HS256")
+
+        return {"access_token": jwt_token, "token_type": "bearer"}
+
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Token Firebase inválido ou expirado")
+
+
+@app.post("/create-ficha_criminal/", dependencies=[Depends(verify_token)])
+async def create_ficha_criminal(db: ficha_db_dependency,  identidade_db: identidade_db_dependency, cpf: str, ficha_criminal: str, foragido: bool = False):
+    cpf_existente = identidade_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
     if not cpf_existente:
         raise HTTPException(status_code=400, detail="CPF não encontrado na tabela Identidade.")
     db_ficha = models.FichaCriminal(
-        cpf=ficha.cpf,
+        cpf=cpf,
         nome="Nome não informado",
-        ficha_criminal=ficha.ficha_criminal,
-        foragido=ficha.foragido
+        ficha_criminal=ficha_criminal,
+        foragido=foragido
     )
     db.add(db_ficha)
     db.commit()
     db.refresh(db_ficha)
     return db_ficha
 
-@app.post("/identidade/", dependencies=[Depends(verificar_api_key)])
+
+@app.post("/create-identidade/", dependencies=[Depends(verify_token)])
 async def create_identidade(
     db: identidade_db_dependency,
     cpf: str,
@@ -122,7 +126,7 @@ async def create_identidade(
     }
 
 
-@app.post("/buscar_similaridade/", dependencies=[Depends(verificar_api_key)])
+@app.post("/buscar_similaridade_foto/", dependencies=[Depends(verify_token)])
 async def buscar_similaridade(
     db: identidade_db_dependency,
     file: UploadFile = File(...)
@@ -131,7 +135,7 @@ async def buscar_similaridade(
     with open(temp_file, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    imagem = aplicar_clahe(temp_file)  # <--- Imagem tratada com CLAHE
+    imagem = aplicar_clahe(temp_file)  # Imagem tratada com CLAHE
     encodings = face_recognition.face_encodings(imagem)
     os.remove(temp_file)
 
@@ -154,12 +158,52 @@ async def buscar_similaridade(
             "distancia": distancia
         })
 
-    mais_similar = min(similaridades, key=lambda x: x["distancia"])
-    LIMITE_SIMILARIDADE = 0.5
-    if mais_similar["distancia"] > LIMITE_SIMILARIDADE:
+    # Ordena pela menor distância
+    similaridades.sort(key=lambda x: x["distancia"])
+    mais_similar = similaridades[0]
+
+    LIMIAR_CONFIANTE = 0.3
+    LIMIAR_AMBÍGUO = 0.5
+
+    if mais_similar["distancia"] < LIMIAR_CONFIANTE:
         return JSONResponse(content={
-            "detail": "Nenhuma identidade similar encontrada.",
+            "status": "confiante",
+            "identidade": mais_similar
+        })
+
+    elif mais_similar["distancia"] < LIMIAR_AMBÍGUO:
+        segunda_mais_similar = similaridades[1] if len(similaridades) > 1 else None
+        return JSONResponse(content={
+            "status": "ambíguo",
+            "mais_proximas": [mais_similar, segunda_mais_similar]
+        })
+
+    else:
+        return JSONResponse(content={
+            "status": "nenhuma similaridade forte",
             "mais_proxima": mais_similar
         })
 
-    return JSONResponse(content=mais_similar)
+
+@app.get("/buscar_ficha_criminal/{cpf}", dependencies=[Depends(verificar_api_key)])
+async def buscar_ficha_criminal(cpf: str, identidade_db: identidade_db_dependency, ficha_db: ficha_db_dependency):
+    # Verificar se o CPF existe na tabela Identidade
+    identidade = identidade_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
+    if not identidade:
+        raise HTTPException(status_code=404, detail="CPF não encontrado na tabela Identidade.")
+
+    # Verificar se o CPF possui ficha criminal
+    ficha_criminal = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == cpf).first()
+
+    # Construir a resposta
+    resposta = {
+        "cpf": identidade.cpf,
+        "nome": identidade.nome,
+        "nome_mae": identidade.nome_mae,
+    }
+
+    if ficha_criminal:
+        resposta["ficha_criminal"] = ficha_criminal.ficha_criminal
+        resposta["foragido"] = ficha_criminal.foragido
+
+    return resposta
