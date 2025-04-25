@@ -7,7 +7,8 @@ WORKDIR /app
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Atualiza e instala dependências necessárias para compilação
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
     build-essential \
     cmake \
     python3-dev \
