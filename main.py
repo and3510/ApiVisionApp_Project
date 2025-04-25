@@ -69,7 +69,7 @@ def auth_with_firebase(token_data: FirebaseToken):
         raise HTTPException(status_code=401, detail="Token Firebase inválido ou expirado")
 
 
-@app.post("/create-ficha_criminal/", dependencies=[Depends(verify_token)])
+@app.post("/create-ficha-criminal/", dependencies=[Depends(verify_token)])
 async def create_ficha_criminal(db: ficha_db_dependency,  identidade_db: identidade_db_dependency, cpf: str, ficha_criminal: str, foragido: bool = False):
     cpf_existente = identidade_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
     if not cpf_existente:
@@ -126,7 +126,7 @@ async def create_identidade(
     }
 
 
-@app.post("/buscar_similaridade_foto/", dependencies=[Depends(verify_token)])
+@app.post("/buscar-similaridade-foto/", dependencies=[Depends(verify_token)])
 async def buscar_similaridade(
     db: identidade_db_dependency,
     file: UploadFile = File(...)
@@ -185,7 +185,7 @@ async def buscar_similaridade(
         })
 
 
-@app.get("/buscar_ficha_criminal/{cpf}", dependencies=[Depends(verify_token)])
+@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_token)])
 async def buscar_ficha_criminal(cpf: str, identidade_db: identidade_db_dependency, ficha_db: ficha_db_dependency):
     # Verificar se o CPF existe na tabela Identidade
     identidade = identidade_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
