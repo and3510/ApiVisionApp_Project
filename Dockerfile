@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11
 
 # Define diretório de trabalho
 WORKDIR /app
@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     libboost-all-dev \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && echo "Packages installed successfully"
 
 # Copia apenas o requirements.txt para usar cache
 COPY requirements.txt .
