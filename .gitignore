@@ -1,9 +1,7 @@
-# .env
+.env
 
-# __pycache__/
+__pycache__/
 
 venv
 
 # firebase_config.json
-
-# app_teste.py
