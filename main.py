@@ -13,21 +13,21 @@ import numpy as np
 from fastapi.security.api_key import APIKeyHeader
 from functions.clahe import aplicar_clahe
 from functions.dependencias import get_ficha_db, get_identidade_db
-from functions.auth_api_key import verificar_api_key
-import models as models
+import config.models as models
 from firebase_admin import credentials, auth, initialize_app
 from jose import jwt
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-from auth_utils import verify_token  # ou de jwt_auth, se renomear
+from functions.auth_utils import verify_token  
 
 load_dotenv()
 
-# 🔧 Inicializar Firebase Admin
+# Inicializar Firebase Admin
 cred = credentials.Certificate("firebase_config.json")
 initialize_app(cred)
 
 # ----------- Carregar variáveis de ambiente -----------
+
 app = FastAPI()
 
 
@@ -56,7 +56,7 @@ def auth_with_firebase(token_data: FirebaseToken):
         decoded_token = auth.verify_id_token(token_data.firebase_token)
         user_id = decoded_token["uid"]
 
-        expire = datetime.utcnow() + timedelta(minutes=60)
+        expire = datetime.utcnow() + timedelta(minutes=1440)
         jwt_payload = {
             "sub": user_id,
             "exp": expire
@@ -185,7 +185,7 @@ async def buscar_similaridade(
         })
 
 
-@app.get("/buscar_ficha_criminal/{cpf}", dependencies=[Depends(verificar_api_key)])
+@app.get("/buscar_ficha_criminal/{cpf}", dependencies=[Depends(verify_token)])
 async def buscar_ficha_criminal(cpf: str, identidade_db: identidade_db_dependency, ficha_db: ficha_db_dependency):
     # Verificar se o CPF existe na tabela Identidade
     identidade = identidade_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()

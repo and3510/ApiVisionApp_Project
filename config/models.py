@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Boolean, Text
-from database import FichaBase, IdentidadeBase
+from config.database import FichaBase, IdentidadeBase
 
 class FichaCriminal(FichaBase):
     __tablename__ = "ficha_criminal"

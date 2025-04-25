@@ -1,4 +1,4 @@
-from database import FichaSessionLocal, IdentidadeSessionLocal
+from config.database import FichaSessionLocal, IdentidadeSessionLocal
 
 
 def get_ficha_db():
