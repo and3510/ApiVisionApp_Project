@@ -1,16 +1,17 @@
-from config.database import FichaSessionLocal, IdentidadeSessionLocal
+from config.database import SspSessionLocal, CinSessionLocal
 
 
-def get_ficha_db():
-    db = FichaSessionLocal()
+def get_ssp_db():
+    db = SspSessionLocal()
     try:
         yield db
     finally:
         db.close()
 
-def get_identidade_db():
-    db = IdentidadeSessionLocal()
+def get_cin_db():
+    db = CinSessionLocal()
     try:
         yield db
     finally:
         db.close()
+

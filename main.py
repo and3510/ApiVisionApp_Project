@@ -1,30 +1,37 @@
 # ----------- Bibliotecas -----------
 
 
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Security
+from fastapi import FastAPI, Depends, Form, HTTPException, UploadFile, File, Security
 from pydantic import BaseModel
 from typing import Annotated
+from sqlalchemy import null
 from sqlalchemy.orm import Session
 import shutil
 import os
 import face_recognition
 from fastapi.responses import JSONResponse
 import numpy as np
-from fastapi.security.api_key import APIKeyHeader
+from config.database import CinBase, SspBase
 from functions.clahe import aplicar_clahe
-from functions.dependencias import get_ficha_db, get_identidade_db
+from functions.dependencias import get_ssp_db, get_cin_db
 import config.models as models
+from config.database import ssp_engine, cin_engine
 from firebase_admin import credentials, auth, initialize_app
 from jose import jwt
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-from functions.auth_utils import verify_token  
+from functions.auth_utils import verify_token
+
 
 load_dotenv()
+
+
 
 # Inicializar Firebase Admin
 cred = credentials.Certificate("firebase_config.json")
 initialize_app(cred)
+
+
 
 # ----------- Carregar variáveis de ambiente -----------
 
@@ -34,9 +41,11 @@ app = FastAPI()
 # ----------- Dependências -----------
 
 
-ficha_db_dependency = Annotated[Session, Depends(get_ficha_db)]
-identidade_db_dependency = Annotated[Session, Depends(get_identidade_db)]
+ssp_db_dependency = Annotated[Session, Depends(get_ssp_db)]
+cin_db_dependency = Annotated[Session, Depends(get_cin_db)]
 
+SspBase.metadata.create_all(bind=ssp_engine)
+CinBase.metadata.create_all(bind=cin_engine)
 
 
 # ---------- Rotas -----------
@@ -46,11 +55,33 @@ class FirebaseToken(BaseModel):
     firebase_token: str
 
 
-@app.get("/usuario/perfil")
-def perfil_usuario(user_data: dict = Depends(verify_token)):
-    return {"mensagem": "Bem-vindo!", "usuario": user_data.get("sub")}
+# @app.get("/usuario/perfil")
+# def perfil_usuario(user_data: dict = Depends(verify_token)):
+#     return {"mensagem": "Bem-vindo!", "usuario": user_data.get("sub")}
 
-@app.post("/auth/firebase")
+
+@app.get("/usuario/perfil", tags=["Requisição do Aplicativo"], dependencies=[Depends(verify_token)])
+def perfil_usuario(
+    db: ssp_db_dependency,
+    user_data: dict = Depends(verify_token),
+):
+    # Pega o id_usuario (uid) do token
+    id_usuario = user_data.get("sub")
+
+    # Busca o usuário no banco
+    usuario = db.query(models.Usuario).filter(models.Usuario.id_usuario == id_usuario).first()
+
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    return {
+        "nome": usuario.nome,
+        "cargo": usuario.cargo,
+        "matricula": usuario.matricula,
+        "nivel_classe": usuario.nivel_classe
+    }
+
+@app.post("/auth/firebase", tags=["Requisição do Aplicativo"])
 def auth_with_firebase(token_data: FirebaseToken):
     try:
         decoded_token = auth.verify_id_token(token_data.firebase_token)
@@ -69,8 +100,8 @@ def auth_with_firebase(token_data: FirebaseToken):
         raise HTTPException(status_code=401, detail="Token Firebase inválido ou expirado")
 
 
-@app.post("/create-ficha-criminal/", dependencies=[Depends(verify_token)])
-async def create_ficha_criminal(db: ficha_db_dependency,  identidade_db: identidade_db_dependency, cpf: str, ficha_criminal: str, foragido: bool = False):
+@app.post("/create-ficha-criminal/", tags=["CRUD"])
+async def create_ficha_criminal(db: ssp_db_dependency,  identidade_db: cin_db_dependency, cpf: str, ficha_criminal: str, foragido: bool = False):
     cpf_existente = identidade_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
     if not cpf_existente:
         raise HTTPException(status_code=400, detail="CPF não encontrado na tabela Identidade.")
@@ -86,9 +117,9 @@ async def create_ficha_criminal(db: ficha_db_dependency,  identidade_db: identid
     return db_ficha
 
 
-@app.post("/create-identidade/", dependencies=[Depends(verify_token)])
+@app.post("/create-identidade/", tags=["CRUD"])
 async def create_identidade(
-    db: identidade_db_dependency,
+    db: cin_db_dependency,
     cpf: str,
     nome: str,
     nome_mae: str,
@@ -126,9 +157,9 @@ async def create_identidade(
     }
 
 
-@app.post("/buscar-similaridade-foto/", dependencies=[Depends(verify_token)])
+@app.post("/buscar-similaridade-foto/", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
 async def buscar_similaridade(
-    db: identidade_db_dependency,
+    db: cin_db_dependency,
     file: UploadFile = File(...)
 ):
     temp_file = f"temp_{file.filename}"
@@ -185,8 +216,8 @@ async def buscar_similaridade(
         })
 
 
-@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_token)])
-async def buscar_ficha_criminal(cpf: str, identidade_db: identidade_db_dependency, ficha_db: ficha_db_dependency):
+@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_token)],  tags=["Requisição do Aplicativo"])
+async def buscar_ficha_criminal(cpf: str, identidade_db: cin_db_dependency, ficha_db: ssp_db_dependency):
     # Verificar se o CPF existe na tabela Identidade
     identidade = identidade_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
     if not identidade:
@@ -207,3 +238,218 @@ async def buscar_ficha_criminal(cpf: str, identidade_db: identidade_db_dependenc
         resposta["foragido"] = ficha_criminal.foragido
 
     return resposta
+
+
+
+
+@app.post("/create-usuario/", tags=["CRUD"])
+async def create_usuario(
+    db: ssp_db_dependency,
+    matricula: str,
+    nome: str,
+    nome_mae: str,
+    nome_pai: str,
+    data_nascimento: str,
+    cpf: str,
+    telefone: str,
+    sexo: str,
+    nacionalidade: str,
+    naturalidade: str,
+    tipo_sanguineo: str,
+    cargo: str,
+    nivel_classe: str,
+    senha: str,
+    nome_social: str = None
+):
+    # CPF como "e-mail" fake para Firebase (não é bonito, mas funciona)
+    fake_email = f"{cpf}@app.com"
+
+    # Cria o usuário no Firebase Authentication
+    try:
+        user = auth.create_user(
+            email=fake_email,
+            password=senha,
+            display_name=nome,
+            disabled=False
+        )
+    except auth.EmailAlreadyExistsError:
+        return {"error": "Usuário já existe no Firebase"}
+
+    # Agora cria também no seu banco de dados local
+    db_usuario = models.Usuario(
+        matricula=matricula,
+        nome=nome,
+        nome_social=nome_social,
+        nome_mae=nome_mae,
+        nome_pai=nome_pai,
+        data_nascimento=data_nascimento,
+        cpf=cpf,
+        telefone=telefone,
+        sexo=sexo,
+        nacionalidade=nacionalidade,
+        naturalidade=naturalidade,
+        tipo_sanguineo=tipo_sanguineo,
+        cargo=cargo,
+        nivel_classe=nivel_classe,
+        senha=senha,
+        id_usuario=user.uid,  # Usa o UID gerado pelo Firebase
+        data_criacao_conta=datetime.utcnow()
+    )
+    db.add(db_usuario)
+    db.commit()
+    db.refresh(db_usuario)
+
+    return db_usuario
+
+@app.put("/update-usuario/{matricula}", tags=["CRUD"])
+async def update_usuario(
+    matricula: str,
+    db: ssp_db_dependency,
+    nome: str = None,
+    nome_social: str = None,
+    nome_mae: str = None,
+    nome_pai: str = None,
+    data_nascimento: str = None,
+    cpf: str = None,
+    telefone: str = None,
+    sexo: str = None,
+    nacionalidade: str = None,
+    naturalidade: str = None,
+    tipo_sanguineo: str = None,
+    cargo: str = None,
+    nivel_classe: str = None,
+    senha: str = None
+):
+    # Recuperar o usuário do banco de dados usando matricula
+    db_usuario = db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
+    
+    if not db_usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+    
+    # Atualiza os campos apenas se forem fornecidos
+    if nome:
+        db_usuario.nome = nome
+    if nome_social:
+        db_usuario.nome_social = nome_social
+    if nome_mae:
+        db_usuario.nome_mae = nome_mae
+    if nome_pai:
+        db_usuario.nome_pai = nome_pai
+    if data_nascimento:
+        db_usuario.data_nascimento = data_nascimento
+    if cpf:
+        db_usuario.cpf = cpf
+    if telefone:
+        db_usuario.telefone = telefone
+    if sexo:
+        db_usuario.sexo = sexo
+    if nacionalidade:
+        db_usuario.nacionalidade = nacionalidade
+    if naturalidade:
+        db_usuario.naturalidade = naturalidade
+    if tipo_sanguineo:
+        db_usuario.tipo_sanguineo = tipo_sanguineo
+    if cargo:
+        db_usuario.cargo = cargo
+    if nivel_classe:
+        db_usuario.nivel_classe = nivel_classe
+    if senha:
+        db_usuario.senha = senha
+
+    db.commit()
+    db.refresh(db_usuario)
+
+    return db_usuario
+
+
+@app.delete("/delete-usuario/{matricula}", tags=["CRUD"])
+async def delete_usuario(matricula: str, db: ssp_db_dependency):
+    # Recuperar o usuário do banco de dados usando matrícula
+    db_usuario = db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
+
+    if not db_usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    try:
+        # Revogar os tokens do usuário no Firebase (invalida o JWT atual)
+        auth.revoke_refresh_tokens(db_usuario.id_usuario)
+
+        # Agora sim, deletar o usuário do Firebase
+        auth.delete_user(db_usuario.id_usuario)
+    except auth.UserNotFoundError:
+        pass
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao remover usuário do Firebase: {str(e)}")
+
+    # Remover o usuário do banco de dados
+    db.delete(db_usuario)
+    db.commit()
+
+    return {"message": "Usuário removido com sucesso."}
+
+
+
+@app.post("/create-mensagem-alerta/", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
+async def create_mensagem_alerta(
+    db: cin_db_dependency,
+    db1: ssp_db_dependency,
+    cpf: str,
+    conteudo_mensagem: str,
+    matricula: str,
+    localizacao: str
+):
+    """
+    Cria uma nova mensagem de alerta. Verifica se o CPF existe na tabela Identidade
+    e se a matrícula existe na tabela Usuario. Se o CPF já existir na tabela Pessoa_Alerta,
+    reutiliza o id_alerta existente. Caso contrário, cria um novo registro em Pessoa_Alerta.
+    """
+    from uuid import uuid4
+    from datetime import datetime
+
+    # Função para gerar um ID com no máximo 20 caracteres
+    def generate_short_uuid():
+        return str(uuid4()).replace("-", "")[:20]
+
+    # Verifica se o CPF existe na tabela Identidade
+    identidade = db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
+    if not identidade:
+        raise HTTPException(status_code=404, detail="CPF não encontrado na tabela Identidade.")
+
+    # Verifica se a matrícula existe na tabela Usuario
+    usuario = db1.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Matrícula não encontrada na tabela Usuario.")
+
+    # Verifica se o CPF já existe na tabela Pessoa_Alerta
+    pessoa_alerta = db.query(models.Pessoa_Alerta).filter(models.Pessoa_Alerta.cpf == cpf).first()
+
+    if pessoa_alerta:
+        # Reutiliza o id_alerta existente
+        id_alerta = pessoa_alerta.id_alerta
+    else:
+        # Cria um novo registro em Pessoa_Alerta
+        id_alerta = generate_short_uuid()  # Gera um novo ID com no máximo 20 caracteres
+        nova_pessoa_alerta = models.Pessoa_Alerta(
+            id_alerta=id_alerta,
+            cpf=cpf,
+            matricula=matricula
+        )
+        db.add(nova_pessoa_alerta)
+        db.commit()
+        db.refresh(nova_pessoa_alerta)
+
+    # Cria um novo registro em Mensagens_Alerta
+    nova_mensagem = models.Mensagens_Alerta(
+        id_mensagem=generate_short_uuid(),  # Gera um novo ID com no máximo 20 caracteres
+        id_alerta=id_alerta,
+        data_mensagem=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # Data atual
+        conteudo_mensagem=conteudo_mensagem,
+        matricula=matricula,
+        localizacao=localizacao,
+        cpf=cpf
+    )
+    db.add(nova_mensagem)
+    db.commit()
+    db.refresh(nova_mensagem)
+
+    return nova_mensagem

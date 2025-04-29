@@ -7,17 +7,17 @@ from sqlalchemy.ext.declarative import declarative_base
 load_dotenv()
 
 
-# Banco 1: Ficha Criminal
-FICHA_DATABASE_URL = os.getenv("FICHA_DATABASE_URL")
+# Banco 1: SSP
+SSP_DATABASE_URL = os.getenv("SSP_DATABASE_URL")
 
-ficha_engine = create_engine(FICHA_DATABASE_URL)
-FichaSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=ficha_engine)
-FichaBase = declarative_base()
+ssp_engine = create_engine(SSP_DATABASE_URL)
+SspSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=ssp_engine)
+SspBase = declarative_base()
 
 
-# Banco 2: Identidade
-IDENTIDADE_DATABASE_URL = os.getenv("IDENTIDADE_DATABASE_URL")
+# Banco 2: CIN
+CIN_DATABASE_URL = os.getenv("CIN_DATABASE_URL")
 
-identidade_engine = create_engine(IDENTIDADE_DATABASE_URL)
-IdentidadeSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=identidade_engine)
-IdentidadeBase = declarative_base()
+cin_engine = create_engine(CIN_DATABASE_URL)
+CinSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=cin_engine)
+CinBase = declarative_base()
