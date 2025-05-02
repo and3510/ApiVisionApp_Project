@@ -64,7 +64,7 @@ class FirebaseToken(BaseModel):
 
 @app.get("/usuario/perfil", tags=["Requisição do Aplicativo"], dependencies=[Depends(verify_token)])
 def perfil_usuario(
-    db: ssp_db_dependency,
+    db: cin_db_dependency,
     user_data: dict = Depends(verify_token),
 ):
     # Pega o id_usuario (uid) do token
