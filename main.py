@@ -266,7 +266,7 @@ async def buscar_ficha_criminal(cpf: str, identidade_db: cin_db_dependency, fich
 
     return resposta
 
-@app.get("/alertas/cpfs",  dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
+@app.get("/alertas/cpfs", tags=["Requisição do Aplicativo"])
 async def get_cpfs_com_alerta(db: cin_db_dependency):
     # Consulta todos os registros na tabela Pessoa_Alerta
     pessoas_alerta = db.query(models.Pessoa_Alerta).all()
@@ -420,6 +420,26 @@ async def create_identidade(
         "vetor_facial": vetor_facial_reduzido,
         "foto_url": db_identidade.url_face  # Retorna a URL da foto
     }
+
+
+@app.delete("/delete-identidade/{cpf}", tags=["CRUD"])
+async def delete_identidade(cpf: str, db: cin_db_dependency):
+    # Verificar se a identidade existe
+    identidade = db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
+    if not identidade:
+        raise HTTPException(status_code=404, detail="Identidade não encontrada.")
+
+    # Verificar se a identidade está associada a um usuário
+    usuario = db.query(models.Usuario).filter(models.Usuario.cpf == cpf).first()
+    if usuario:
+        # Reutilizar a função delete_usuario para remover o usuário e seus dados associados
+        await delete_usuario(usuario.matricula, db)
+
+    # Remover a identidade
+    db.delete(identidade)
+    db.commit()
+
+    return {"message": "Identidade e dados associados removidos com sucesso."}
 
 
 @app.post("/create-usuario/", tags=["CRUD"])
