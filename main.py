@@ -103,7 +103,7 @@ def auth_with_firebase(token_data: FirebaseToken):
 
 
 
-@app.post("/buscar-similaridade-foto/", tags=["Requisição do Aplicativo"])
+@app.post("/buscar-similaridade-foto/", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
 async def buscar_similaridade(
     db: cin_db_dependency,
     ficha_db: ssp_db_dependency,
@@ -209,7 +209,7 @@ async def buscar_similaridade(
         })
 
 
-@app.get("/buscar-ficha-criminal/{cpf}", tags=["Requisição do Aplicativo"])
+@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
 async def buscar_ficha_criminal(cpf: str, identidade_db: cin_db_dependency, ficha_db: ssp_db_dependency):
     # Verificar se o CPF existe na tabela Identidade
     identidade = identidade_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
@@ -266,7 +266,7 @@ async def buscar_ficha_criminal(cpf: str, identidade_db: cin_db_dependency, fich
 
     return resposta
 
-@app.get("/alertas/cpfs", tags=["Requisição do Aplicativo"])
+@app.get("/alertas/cpfs",  dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
 async def get_cpfs_com_alerta(db: cin_db_dependency):
     # Consulta todos os registros na tabela Pessoa_Alerta
     pessoas_alerta = db.query(models.Pessoa_Alerta).all()
@@ -296,7 +296,7 @@ async def get_cpfs_com_alerta(db: cin_db_dependency):
 
     return {"alertas": resposta}
 
-@app.post("/create-mensagem-alerta/", tags=["Requisição do Aplicativo"])
+@app.post("/create-mensagem-alerta/",  dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
 async def create_mensagem_alerta(
     db: cin_db_dependency,
     cpf: str,
@@ -360,7 +360,7 @@ async def create_mensagem_alerta(
 # CRUD 
 
 
-@app.post("/create-identidade/", tags=["CRUD"])
+@app.post("/create-identidade/",  dependencies=[Depends(verify_token)], tags=["CRUD"])
 async def create_identidade(
     db: cin_db_dependency,
     cpf: str,
@@ -422,7 +422,7 @@ async def create_identidade(
     }
 
 
-@app.post("/create-usuario/", tags=["CRUD"])
+@app.post("/create-usuario/",  dependencies=[Depends(verify_token)], tags=["CRUD"])
 async def create_usuario(
     db: cin_db_dependency,
     matricula: str,
@@ -499,7 +499,7 @@ async def create_usuario(
 
     return db_usuario
 
-@app.put("/update-usuario/{matricula}", tags=["CRUD"])
+@app.put("/update-usuario/{matricula}",  dependencies=[Depends(verify_token)], tags=["CRUD"])
 async def update_usuario(
     matricula: str,
     db: cin_db_dependency,
@@ -568,7 +568,7 @@ async def update_usuario(
 
     return db_usuario
 
-@app.delete("/delete-usuario/{matricula}", tags=["CRUD"])
+@app.delete("/delete-usuario/{matricula}",  dependencies=[Depends(verify_token)], tags=["CRUD"])
 async def delete_usuario(matricula: str, db: cin_db_dependency):
     # Recuperar o usuário do banco de dados usando matrícula
     db_usuario = db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
@@ -604,7 +604,7 @@ class CrimeStatus(str, Enum):
 
 
 
-@app.put("/update-ficha/", tags=["CRUD"])
+@app.put("/update-ficha/",  dependencies=[Depends(verify_token)], tags=["CRUD"])
 async def update_ficha(
     db: ssp_db_dependency,
     cpf: str,
@@ -638,7 +638,7 @@ async def update_ficha(
     
 
 
-@app.post("/create-crime/", tags=["CRUD"])
+@app.post("/create-crime/",  dependencies=[Depends(verify_token)], tags=["CRUD"])
 async def create_crime(
     db: ssp_db_dependency,
     db1: cin_db_dependency,
