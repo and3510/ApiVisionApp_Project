@@ -57,8 +57,8 @@ CinBase.metadata.create_all(bind=cin_engine)
 # ---------- Rotas -----------
 
 
-class FirebaseToken(BaseModel):
-    firebase_token: str
+# class FirebaseToken(BaseModel):
+#     firebase_token: str
 
 
 
@@ -84,9 +84,9 @@ def perfil_usuario(
     }
 
 @app.post("/auth/firebase", tags=["Requisição do Aplicativo"])
-def auth_with_firebase(token_data: FirebaseToken):
+def auth_with_firebase(token_data: str):
     try:
-        decoded_token = auth.verify_id_token(token_data.firebase_token)
+        decoded_token = auth.verify_id_token(token_data)
         user_id = decoded_token["uid"]
 
         expire = datetime.utcnow() + timedelta(minutes=1440)
@@ -103,7 +103,7 @@ def auth_with_firebase(token_data: FirebaseToken):
 
 
 
-@app.post("/buscar-similaridade-foto/", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
+@app.post("/buscar-similaridade-foto/", tags=["Requisição do Aplicativo"])
 async def buscar_similaridade(
     db: cin_db_dependency,
     ficha_db: ssp_db_dependency,
@@ -209,7 +209,7 @@ async def buscar_similaridade(
         })
 
 
-@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
+@app.get("/buscar-ficha-criminal/{cpf}", tags=["Requisição do Aplicativo"])
 async def buscar_ficha_criminal(cpf: str, identidade_db: cin_db_dependency, ficha_db: ssp_db_dependency):
     # Verificar se o CPF existe na tabela Identidade
     identidade = identidade_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
@@ -296,7 +296,7 @@ async def get_cpfs_com_alerta(db: cin_db_dependency):
 
     return {"alertas": resposta}
 
-@app.post("/create-mensagem-alerta/",  dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
+@app.post("/create-mensagem-alerta/", tags=["Requisição do Aplicativo"])
 async def create_mensagem_alerta(
     db: cin_db_dependency,
     cpf: str,
@@ -360,7 +360,7 @@ async def create_mensagem_alerta(
 # CRUD 
 
 
-@app.post("/create-identidade/",  dependencies=[Depends(verify_token)], tags=["CRUD"])
+@app.post("/create-identidade/", tags=["CRUD"])
 async def create_identidade(
     db: cin_db_dependency,
     cpf: str,
@@ -422,7 +422,7 @@ async def create_identidade(
     }
 
 
-@app.post("/create-usuario/",  dependencies=[Depends(verify_token)], tags=["CRUD"])
+@app.post("/create-usuario/", tags=["CRUD"])
 async def create_usuario(
     db: cin_db_dependency,
     matricula: str,
@@ -499,7 +499,8 @@ async def create_usuario(
 
     return db_usuario
 
-@app.put("/update-usuario/{matricula}",  dependencies=[Depends(verify_token)], tags=["CRUD"])
+
+@app.put("/update-usuario/{matricula}", tags=["CRUD"])
 async def update_usuario(
     matricula: str,
     db: cin_db_dependency,
@@ -568,10 +569,12 @@ async def update_usuario(
 
     return db_usuario
 
-@app.delete("/delete-usuario/{matricula}",  dependencies=[Depends(verify_token)], tags=["CRUD"])
+@app.delete("/delete-usuario/{matricula}", tags=["CRUD"])
 async def delete_usuario(matricula: str, db: cin_db_dependency):
     # Recuperar o usuário do banco de dados usando matrícula
     db_usuario = db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
+    alertas_usuario = db.query(models.Mensagens_Alerta).filter(models.Mensagens_Alerta.matricula == matricula).all()
+    usuario_noAlerta = db.query(models.Pessoa_Alerta).filter(models.Pessoa_Alerta.matricula == matricula).all()
 
     if not db_usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
@@ -588,6 +591,15 @@ async def delete_usuario(matricula: str, db: cin_db_dependency):
         raise HTTPException(status_code=500, detail=f"Erro ao remover usuário do Firebase: {str(e)}")
 
     # Remover o usuário do banco de dados
+
+    if alertas_usuario:
+        for alerta in alertas_usuario:
+            db.delete(alerta)
+
+    if usuario_noAlerta:
+        for alerta in usuario_noAlerta:
+            db.delete(alerta)
+
     db.delete(db_usuario)
     db.commit()
 

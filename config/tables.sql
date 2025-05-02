@@ -61,7 +61,6 @@ CREATE TABLE usuario (
 CREATE TABLE ficha_criminal (
     id_ficha VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
     cpf VARCHAR(14) REFERENCES identidade(cpf),
-    nome VARCHAR(150),
     vulgo VARCHAR(100),
     foragido BOOLEAN
 );
@@ -76,6 +75,6 @@ CREATE TABLE crime (
     data_ocorrencia VARCHAR(20),
     cidade VARCHAR(100),
     estado CHAR(2),
-    status VARCHAR(20) CHECK (status IN ('Investigando', 'Condenado', 'Absolvido', 'Arquivado'))
+    status VARCHAR(20) CHECK (status IN ('Em Aberto', 'Condenado', 'Absolvido', 'Arquivado', 'Cumprido')),
 );
 
