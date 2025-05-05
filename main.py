@@ -296,7 +296,7 @@ async def get_cpfs_com_alerta(db: cin_db_dependency):
 
     return {"alertas": resposta}
 
-@app.post("/create-mensagem-alerta/", tags=["Requisição do Aplicativo"])
+@app.post("/create-mensagem-alerta/", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
 async def create_mensagem_alerta(
     db: cin_db_dependency,
     cpf: str,
