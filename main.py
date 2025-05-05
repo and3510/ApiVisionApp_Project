@@ -13,6 +13,7 @@ import face_recognition
 from fastapi.responses import JSONResponse
 import numpy as np
 from config.database import CinBase, SspBase
+from functions.auth_crud import verify_crud_api_key
 from functions.clahe import aplicar_clahe
 from functions.dependencias import get_ssp_db, get_cin_db
 import config.models as models
@@ -360,7 +361,7 @@ async def create_mensagem_alerta(
 # CRUD 
 
 
-@app.post("/create-identidade/", tags=["CRUD"])
+@app.post("/create-identidade/", dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
 async def create_identidade(
     db: cin_db_dependency,
     cpf: str,
@@ -422,7 +423,7 @@ async def create_identidade(
     }
 
 
-@app.delete("/delete-identidade/{cpf}", tags=["CRUD"])
+@app.delete("/delete-identidade/{cpf}", dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
 async def delete_identidade(cpf: str, db: cin_db_dependency):
     # Verificar se a identidade existe
     identidade = db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
@@ -442,7 +443,7 @@ async def delete_identidade(cpf: str, db: cin_db_dependency):
     return {"message": "Identidade e dados associados removidos com sucesso."}
 
 
-@app.post("/create-usuario/", tags=["CRUD"])
+@app.post("/create-usuario/",  dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
 async def create_usuario(
     db: cin_db_dependency,
     matricula: str,
@@ -520,7 +521,7 @@ async def create_usuario(
     return db_usuario
 
 
-@app.put("/update-usuario/{matricula}", tags=["CRUD"])
+@app.put("/update-usuario/{matricula}",  dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
 async def update_usuario(
     matricula: str,
     db: cin_db_dependency,
@@ -589,7 +590,7 @@ async def update_usuario(
 
     return db_usuario
 
-@app.delete("/delete-usuario/{matricula}", tags=["CRUD"])
+@app.delete("/delete-usuario/{matricula}",  dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
 async def delete_usuario(matricula: str, db: cin_db_dependency):
     # Recuperar o usuário do banco de dados usando matrícula
     db_usuario = db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
@@ -636,7 +637,7 @@ class CrimeStatus(str, Enum):
 
 
 
-@app.put("/update-ficha/",  dependencies=[Depends(verify_token)], tags=["CRUD"])
+@app.put("/update-ficha/",   dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
 async def update_ficha(
     db: ssp_db_dependency,
     cpf: str,
@@ -670,7 +671,7 @@ async def update_ficha(
     
 
 
-@app.post("/create-crime/",  dependencies=[Depends(verify_token)], tags=["CRUD"])
+@app.post("/create-crime/",   dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
 async def create_crime(
     db: ssp_db_dependency,
     db1: cin_db_dependency,
