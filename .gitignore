@@ -1,7 +1,7 @@
-# .env
+.env
 
 __pycache__/
 
 venv
 
-# firebase_config.json
+firebase_config.json

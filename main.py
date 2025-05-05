@@ -103,7 +103,7 @@ def auth_with_firebase(token_data: str):
 
 
 
-@app.post("/buscar-similaridade-foto/", tags=["Requisição do Aplicativo"])
+@app.post("/buscar-similaridade-foto/", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
 async def buscar_similaridade(
     db: cin_db_dependency,
     ficha_db: ssp_db_dependency,
@@ -209,7 +209,7 @@ async def buscar_similaridade(
         })
 
 
-@app.get("/buscar-ficha-criminal/{cpf}", tags=["Requisição do Aplicativo"])
+@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
 async def buscar_ficha_criminal(cpf: str, identidade_db: cin_db_dependency, ficha_db: ssp_db_dependency):
     # Verificar se o CPF existe na tabela Identidade
     identidade = identidade_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
@@ -266,7 +266,7 @@ async def buscar_ficha_criminal(cpf: str, identidade_db: cin_db_dependency, fich
 
     return resposta
 
-@app.get("/alertas/cpfs", tags=["Requisição do Aplicativo"])
+@app.get("/alertas/cpfs", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
 async def get_cpfs_com_alerta(db: cin_db_dependency):
     # Consulta todos os registros na tabela Pessoa_Alerta
     pessoas_alerta = db.query(models.Pessoa_Alerta).all()
