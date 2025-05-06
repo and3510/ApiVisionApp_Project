@@ -27,6 +27,7 @@ from functions.minio import upload_to_minio
 import pytz
 from enum import Enum
 
+from functions import auth_with_firebase, buscar_ficha_criminal, buscar_similaridade, cpfs_com_alerta, create_mensagem_alerta, perfil_usuario
 
 
 
@@ -64,298 +65,73 @@ CinBase.metadata.create_all(bind=cin_engine)
 
 
 @app.get("/usuario/perfil", tags=["Requisição do Aplicativo"], dependencies=[Depends(verify_token)])
-def perfil_usuario(
+
+async def get_perfil_usuario(
     db: cin_db_dependency,
     user_data: dict = Depends(verify_token),
 ):
-    # Pega o id_usuario (uid) do token
-    id_usuario = user_data.get("sub")
+    return perfil_usuario(db, user_data)
 
-    # Busca o usuário no banco
-    usuario = db.query(models.Usuario).filter(models.Usuario.id_usuario == id_usuario).first()
 
-    if not usuario:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
-
-    return {
-        "nome": usuario.nome,
-        "cargo": usuario.cargo,
-        "matricula": usuario.matricula,
-        "nivel_classe": usuario.nivel_classe
-    }
 
 @app.post("/auth/firebase", tags=["Requisição do Aplicativo"])
-def auth_with_firebase(token_data: str):
-    try:
-        decoded_token = auth.verify_id_token(token_data)
-        user_id = decoded_token["uid"]
 
-        expire = datetime.utcnow() + timedelta(minutes=1440)
-        jwt_payload = {
-            "sub": user_id,
-            "exp": expire
-        }
-        jwt_token = jwt.encode(jwt_payload, os.getenv("SECRET_KEY"), algorithm="HS256")
-
-        return {"access_token": jwt_token, "token_type": "bearer"}
-
-    except Exception as e:
-        raise HTTPException(status_code=401, detail="Token Firebase inválido ou expirado")
+async def get_firebase_auth(
+    token_data: str
+):
+    return auth_with_firebase(token_data)
 
 
 
 @app.post("/buscar-similaridade-foto/", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
-async def buscar_similaridade(
+
+async def get_buscar_similaridade(
     db: cin_db_dependency,
     ficha_db: ssp_db_dependency,
     file: UploadFile = File(...)
 ):
-    temp_file = f"temp_{file.filename}"
-    with open(temp_file, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
-    # Processar a imagem com CLAHE
-    imagem = aplicar_clahe(temp_file)
-    encodings = face_recognition.face_encodings(imagem, num_jitters=10, model="large")
-    os.remove(temp_file)
-
-    if not encodings:
-        raise HTTPException(status_code=400, detail="Nenhum rosto detectado.")
-
-    vetor_facial = encodings[0]
-    identidades = db.query(models.Identidade).all()
-    if not identidades:
-        raise HTTPException(status_code=404, detail="Nenhuma identidade encontrada no banco de dados.")
-
-    similaridades = []
-    for identidade in identidades:
-        vetor_facial_banco = np.array(json.loads(identidade.vetor_facial))
-        distancia = np.linalg.norm(vetor_facial - vetor_facial_banco)
-        similaridades.append({
-            "cpf": identidade.cpf,
-            "nome": identidade.nome,
-            "nome_mae": identidade.nome_mae,
-            "nome_pai": identidade.nome_pai,
-            "data_nascimento": identidade.data_nascimento,
-            "url_face": identidade.url_face,
-            "distancia": distancia,
-        })
-
-    # Ordena pela menor distância
-    similaridades.sort(key=lambda x: x["distancia"])
-    mais_similar = similaridades[0]
-
-    LIMIAR_CONFIANTE = 0.4
-    LIMIAR_AMBÍGUO = 0.5
-
-    # Buscar ficha criminal associada ao CPF
-    cpf = mais_similar["cpf"]
-    ficha_criminal = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == cpf).first()
-    crimes = []
-    if ficha_criminal:
-        crimes = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal.id_ficha).all()
-
-    ficha_criminal_info = {
-        "ficha_criminal": {
-            "id_ficha": ficha_criminal.id_ficha,
-            "vulgo": ficha_criminal.vulgo,
-            "foragido": ficha_criminal.foragido
-        } if ficha_criminal else None,
-        "crimes": [
-            {
-                "id_crime": crime.id_crime,
-                "nome_crime": crime.nome_crime,
-                "artigo": crime.artigo,
-                "descricao": crime.descricao,
-                "cidade": crime.cidade,
-                "estado": crime.estado,
-                "status": crime.status
-            }
-            for crime in crimes
-        ]
-    }
-
-    # Buscar todos os alertas relacionados ao CPF
-    alertas = db.query(models.Mensagens_Alerta).filter(models.Mensagens_Alerta.cpf == cpf).all()
-    alertas_formatados = [
-        {
-            "id_alerta": alerta.id_alerta,
-            "id_mensagem": alerta.id_mensagem,
-            "data_mensagem": alerta.data_mensagem,
-            "conteudo_mensagem": alerta.conteudo_mensagem,
-            "matricula": alerta.matricula,
-            "localizacao": alerta.localizacao,
-        }
-        for alerta in alertas
-    ]
-
-    if mais_similar["distancia"] < LIMIAR_CONFIANTE:
-        return JSONResponse(content={
-            "status": "confiante",
-            "identidade": mais_similar,
-            "ficha_criminal": ficha_criminal_info,
-            "alertas": alertas_formatados
-        })
-
-    elif mais_similar["distancia"] < LIMIAR_AMBÍGUO:
-        segunda_mais_similar = similaridades[1] if len(similaridades) > 1 else None
-        return JSONResponse(content={
-            "status": "ambíguo",
-            "mais_proximas": [mais_similar, segunda_mais_similar],
-        })
-
-    else:
-        return JSONResponse(content={
-            "status": "nenhuma similaridade forte",
-        })
+    try:
+        return buscar_similaridade(db, ficha_db, file)
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    
 
 
 @app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
-async def buscar_ficha_criminal(cpf: str, identidade_db: cin_db_dependency, ficha_db: ssp_db_dependency):
-    # Verificar se o CPF existe na tabela Identidade
-    identidade = identidade_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
-    if not identidade:
-        raise HTTPException(status_code=404, detail="CPF não encontrado na tabela Identidade.")
 
-    # Verificar se o CPF possui ficha criminal
-    ficha_criminal = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == cpf).first()
-    crimes = []
-    if ficha_criminal:
-        crimes = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal.id_ficha).all()
+async def get_buscar_ficha_criminal(
+    cpf: str,
+    identidade_db: cin_db_dependency,
+    ficha_db: ssp_db_dependency
+):
+    try:
+        return buscar_ficha_criminal(cpf, identidade_db, ficha_db)
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
 
-    # Buscar todos os alertas relacionados ao CPF
-    alertas = identidade_db.query(models.Mensagens_Alerta).filter(models.Mensagens_Alerta.cpf == cpf).all()
-    alertas_formatados = [
-        {
-            "id_alerta": alerta.id_alerta,
-            "id_mensagem": alerta.id_mensagem,
-            "data_mensagem": alerta.data_mensagem,
-            "conteudo_mensagem": alerta.conteudo_mensagem,
-            "matricula": alerta.matricula,
-            "localizacao": alerta.localizacao,
-        }
-        for alerta in alertas
-    ]
-
-    # Construir a resposta
-    resposta = {
-        "cpf": identidade.cpf,
-        "nome": identidade.nome,
-        "nome_mae": identidade.nome_mae,
-        "nome_pai": identidade.nome_pai,
-        "data_nascimento": identidade.data_nascimento,
-        "foto_url": identidade.url_face,
-        "ficha_criminal": {
-            "id_ficha": ficha_criminal.id_ficha if ficha_criminal else None,
-            "vulgo": ficha_criminal.vulgo if ficha_criminal else None,
-            "foragido": ficha_criminal.foragido if ficha_criminal else None,
-        },
-        "crimes": [
-            {
-                "id_crime": crime.id_crime,
-                "nome_crime": crime.nome_crime,
-                "artigo": crime.artigo,
-                "descricao": crime.descricao,
-                "cidade": crime.cidade,
-                "estado": crime.estado,
-                "status": crime.status,
-            }
-            for crime in crimes
-        ],
-        "alertas": alertas_formatados,
-    }
-
-    return resposta
 
 @app.get("/alertas/cpfs", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
 async def get_cpfs_com_alerta(db: cin_db_dependency):
-    # Consulta todos os registros na tabela Pessoa_Alerta
-    pessoas_alerta = db.query(models.Pessoa_Alerta).all()
+    try:
+        return cpfs_com_alerta(db)
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
 
-    if not pessoas_alerta:
-        raise HTTPException(status_code=404, detail="Nenhum alerta encontrado.")
-
-    # Agrupa os CPFs, conta a quantidade de alertas e busca o nome da pessoa
-    alertas_por_cpf = {}
-    for pessoa_alerta in pessoas_alerta:
-        cpf = pessoa_alerta.cpf
-
-        if cpf in alertas_por_cpf:
-            alertas_por_cpf[cpf]["quantidade"] += 1
-        else:
-            # Busca o nome da pessoa na tabela Identidade
-            identidade = db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
-            nome = identidade.nome if identidade else "Nome não encontrado"
-            url_face = identidade.url_face if identidade else "URL não encontrada"
-            alertas_por_cpf[cpf] = {"quantidade": 1, "nome": nome}
-
-    # Formata a resposta
-    resposta = [
-        {"url_face": url_face, "cpf": cpf, "nome": dados["nome"], "quantidade_alertas": dados["quantidade"]}
-        for cpf, dados in alertas_por_cpf.items()
-    ]
-
-    return {"alertas": resposta}
 
 @app.post("/create-mensagem-alerta/", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
-async def create_mensagem_alerta(
+async def get_create_mensagem_alerta(
     db: cin_db_dependency,
     cpf: str,
     conteudo_mensagem: str,
     matricula: str,
     localizacao: str
 ):
+    try:
+        return create_mensagem_alerta(db, cpf, conteudo_mensagem, matricula, localizacao)
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
 
-    from uuid import uuid4
-    from datetime import datetime
 
-    # Função para gerar um ID com no máximo 20 caracteres
-    def generate_short_uuid():
-        return str(uuid4()).replace("-", "")[:20]
-
-    # Verifica se o CPF existe na tabela Identidade
-    identidade = db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
-    if not identidade:
-        raise HTTPException(status_code=404, detail="CPF não encontrado na tabela Identidade.")
-
-    # Verifica se a matrícula existe na tabela Usuario
-    usuario = db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
-    if not usuario:
-        raise HTTPException(status_code=404, detail="Matrícula não encontrada na tabela Usuario.")
-
-    # Verifica se o CPF já existe na tabela Pessoa_Alerta
-    pessoa_alerta = db.query(models.Pessoa_Alerta).filter(models.Pessoa_Alerta.cpf == cpf).first()
-
-    if pessoa_alerta:
-        # Reutiliza o id_alerta existente
-        id_alerta = pessoa_alerta.id_alerta
-    else:
-        id_alerta = generate_short_uuid()  # Gera um novo ID com no máximo 20 caracteres
-        nova_pessoa_alerta = models.Pessoa_Alerta(
-            id_alerta=id_alerta,
-            cpf=cpf,
-            matricula=matricula
-        )
-        db.add(nova_pessoa_alerta)
-        db.commit()
-        db.refresh(nova_pessoa_alerta)
-
-    br_tz = pytz.timezone('America/Sao_Paulo')
-
-    nova_mensagem = models.Mensagens_Alerta(
-        id_mensagem=generate_short_uuid(),  # Gera um novo ID com no máximo 20 caracteres
-        id_alerta=id_alerta,
-        data_mensagem=datetime.now(br_tz).strftime("%H:%M:%S %d/%m/%Y"),  # Data atual
-        conteudo_mensagem=conteudo_mensagem,
-        matricula=matricula,
-        localizacao=localizacao,
-        cpf=cpf
-    )
-    db.add(nova_mensagem)
-    db.commit()
-    db.refresh(nova_mensagem)
-
-    return nova_mensagem
 
 
 # CRUD 
