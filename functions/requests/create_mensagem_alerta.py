@@ -7,19 +7,22 @@ from fastapi import Depends, HTTPException
 from typing import Annotated
 import pytz
 from sqlalchemy.orm import Session
-from config.database import CinBase 
-from functions.dependencias import get_cin_db
+from config.database import SspBase, CinBase
+from functions.dependencias import get_ssp_db, get_cin_db
 import config.models as models
-from config.database import cin_engine
+from config.database import ssp_engine, cin_engine
 
-
+ssp_db_dependency = Annotated[Session, Depends(get_ssp_db)]
 cin_db_dependency = Annotated[Session, Depends(get_cin_db)]
 
+SspBase.metadata.create_all(bind=ssp_engine)
 CinBase.metadata.create_all(bind=cin_engine)
 
 
+
 def create_mensagem_alerta(
-    db: cin_db_dependency,
+    db: ssp_db_dependency,
+    db1: cin_db_dependency,
     cpf: str,
     conteudo_mensagem: str,
     matricula: str,
@@ -34,12 +37,12 @@ def create_mensagem_alerta(
         return str(uuid4()).replace("-", "")[:20]
 
     # Verifica se o CPF existe na tabela Identidade
-    identidade = db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
+    identidade = db1.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
     if not identidade:
         raise HTTPException(status_code=404, detail="CPF não encontrado na tabela Identidade.")
 
     # Verifica se a matrícula existe na tabela Usuario
-    usuario = db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
+    usuario = db1.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Matrícula não encontrada na tabela Usuario.")
 

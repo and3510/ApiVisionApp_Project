@@ -92,7 +92,7 @@ def buscar_similaridade(
     }
 
     # Buscar todos os alertas relacionados ao CPF
-    alertas = db.query(models.Mensagens_Alerta).filter(models.Mensagens_Alerta.cpf == cpf).all()
+    alertas = ficha_db.query(models.Mensagens_Alerta).filter(models.Mensagens_Alerta.cpf == cpf).all()
     alertas_formatados = [
         {
             "id_alerta": alerta.id_alerta,

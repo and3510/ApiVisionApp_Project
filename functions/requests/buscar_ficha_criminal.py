@@ -27,7 +27,7 @@ def buscar_ficha_criminal(cpf: str, identidade_db: cin_db_dependency, ficha_db: 
         crimes = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal.id_ficha).all()
 
     # Buscar todos os alertas relacionados ao CPF
-    alertas = identidade_db.query(models.Mensagens_Alerta).filter(models.Mensagens_Alerta.cpf == cpf).all()
+    alertas = ficha_db.query(models.Mensagens_Alerta).filter(models.Mensagens_Alerta.cpf == cpf).all()
     alertas_formatados = [
         {
             "id_alerta": alerta.id_alerta,

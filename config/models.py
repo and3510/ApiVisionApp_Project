@@ -35,24 +35,24 @@ class Identidade(CinBase):
     vetor_facial = Column(String(180), nullable=False)
     url_face = Column(String(255), nullable=False)
 
-class Pessoa_Alerta(CinBase):
-    __tablename__ = "pessoa_alerta"
+# class Pessoa_Alerta(CinBase):
+#     __tablename__ = "pessoa_alerta"
 
-    id_alerta = Column(String(30), primary_key=True, index=True)
-    cpf = Column(String(14), nullable=False)
-    matricula = Column(String(10), nullable=False)
+#     id_alerta = Column(String(30), primary_key=True, index=True)
+#     cpf = Column(String(14), nullable=False)
+#     matricula = Column(String(10), nullable=False)
 
 
-class Mensagens_Alerta(CinBase):
-    __tablename__ = "mensagem_alerta"
+# class Mensagens_Alerta(CinBase):
+#     __tablename__ = "mensagem_alerta"
 
-    id_mensagem = Column(String(30), primary_key=True, index=True)
-    id_alerta = Column(String(30), nullable=False)
-    data_mensagem = Column(String(50), nullable=False)  
-    conteudo_mensagem = Column(String, nullable=False)
-    matricula = Column(String(20), nullable=False)
-    localizacao = Column(String(150), nullable=False)
-    cpf = Column(String(14), nullable=False)
+#     id_mensagem = Column(String(30), primary_key=True, index=True)
+#     id_alerta = Column(String(30), nullable=False)
+#     data_mensagem = Column(String(50), nullable=False)  
+#     conteudo_mensagem = Column(String, nullable=False)
+#     matricula = Column(String(20), nullable=False)
+#     localizacao = Column(String(150), nullable=False)
+#     cpf = Column(String(14), nullable=False)
 
 
 class FichaCriminal(SspBase):
@@ -77,3 +77,23 @@ class Crime(SspBase):
     cidade = Column(String(100), nullable=False)
     estado = Column(String(2), nullable=False)
     status = Column(String(20), nullable=False)
+
+
+class Pessoa_Alerta(SspBase):
+    __tablename__ = "pessoa_alerta"
+
+    id_alerta = Column(String(30), primary_key=True, index=True)
+    cpf = Column(String(14), nullable=False)
+    matricula = Column(String(10), nullable=False)
+
+
+class Mensagens_Alerta(SspBase):
+    __tablename__ = "mensagem_alerta"
+
+    id_mensagem = Column(String(30), primary_key=True, index=True)
+    id_alerta = Column(String(30), nullable=False)
+    data_mensagem = Column(String(50), nullable=False)  
+    conteudo_mensagem = Column(String, nullable=False)
+    matricula = Column(String(20), nullable=False)
+    localizacao = Column(String(150), nullable=False)
+    cpf = Column(String(14), nullable=False)

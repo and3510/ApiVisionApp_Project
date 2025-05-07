@@ -92,7 +92,7 @@ async def get_firebase_auth(
 
 
 
-@app.post("/buscar-similaridade-foto/", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
+@app.post("/buscar-similaridade-foto/", tags=["Requisição do Aplicativo"])
 
 async def get_buscar_similaridade(
     db: cin_db_dependency,
@@ -106,7 +106,7 @@ async def get_buscar_similaridade(
     
 
 
-@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
+@app.get("/buscar-ficha-criminal/{cpf}",  tags=["Requisição do Aplicativo"])
 
 async def get_buscar_ficha_criminal(
     cpf: str,
@@ -119,24 +119,25 @@ async def get_buscar_ficha_criminal(
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
-@app.get("/alertas/cpfs", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
-async def get_cpfs_com_alerta(db: cin_db_dependency):
+@app.get("/alertas/cpfs",  tags=["Requisição do Aplicativo"])
+async def get_cpfs_com_alerta(db: ssp_db_dependency, db1: cin_db_dependency):
     try:
-        return cpfs_com_alerta(db)
+        return cpfs_com_alerta(db, db1)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
-@app.post("/create-mensagem-alerta/", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
+@app.post("/create-mensagem-alerta/", tags=["Requisição do Aplicativo"])
 async def get_create_mensagem_alerta(
-    db: cin_db_dependency,
+    db: ssp_db_dependency,
+    db1: cin_db_dependency,
     cpf: str,
     conteudo_mensagem: str,
     matricula: str,
     localizacao: str
 ):
     try:
-        return create_mensagem_alerta(db, cpf, conteudo_mensagem, matricula, localizacao)
+        return create_mensagem_alerta(db,db1, cpf, conteudo_mensagem, matricula, localizacao)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
@@ -256,10 +257,10 @@ async def get_update_usuario(
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 @app.delete("/delete-usuario/{matricula}",  dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
-async def get_delete_usuario(matricula: str, db: cin_db_dependency):
+async def get_delete_usuario(matricula: str, db: cin_db_dependency, db1: ssp_db_dependency):
     
     try:    
-        return await delete_usuario(matricula, db)
+        return delete_usuario(matricula, db, db1)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 

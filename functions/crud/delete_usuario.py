@@ -5,23 +5,26 @@ from fastapi import Depends, HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
 
-from config.database import CinBase
+from config.database import CinBase, SspBase
 
-from functions.dependencias import get_cin_db
+from functions.dependencias import get_cin_db, get_ssp_db
 import config.models as models
-from config.database import cin_engine
+from config.database import cin_engine, ssp_engine
 from firebase_admin import auth
 
 
+
+ssp_db_dependency = Annotated[Session, Depends(get_ssp_db)]
 cin_db_dependency = Annotated[Session, Depends(get_cin_db)]
 
+SspBase.metadata.create_all(bind=ssp_engine)
 CinBase.metadata.create_all(bind=cin_engine)
 
-def delete_usuario(matricula: str, db: cin_db_dependency):
+def delete_usuario(matricula: str, db: cin_db_dependency, db1: ssp_db_dependency):
     # Recuperar o usuário do banco de dados usando matrícula
     db_usuario = db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
-    alertas_usuario = db.query(models.Mensagens_Alerta).filter(models.Mensagens_Alerta.matricula == matricula).all()
-    usuario_noAlerta = db.query(models.Pessoa_Alerta).filter(models.Pessoa_Alerta.matricula == matricula).all()
+    alertas_usuario = db1.query(models.Mensagens_Alerta).filter(models.Mensagens_Alerta.matricula == matricula).all()
+    usuario_noAlerta = db1.query(models.Pessoa_Alerta).filter(models.Pessoa_Alerta.matricula == matricula).all()
 
     if not db_usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
