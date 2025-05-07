@@ -14,24 +14,6 @@ CREATE TABLE identidade (
 );
 
 
--- Tabela: pessoa_alerta
-CREATE TABLE pessoa_alerta (
-    id_alerta VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
-    cpf VARCHAR(14) REFERENCES identidade(cpf),
-    matricula VARCHAR(10) REFERENCES usuario(matricula)
-);
-
-
--- Tabela: mensagem_alerta
-CREATE TABLE mensagem_alerta (
-    id_alerta VARCHAR REFERENCES pessoa_alerta(id_alerta),
-    id_mensagem VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
-    data_mensagem VARCHAR(50),
-    conteudo_mensagem TEXT,
-    matricula VARCHAR(10) REFERENCES usuario(matricula),
-    localizacao VARCHAR(150),
-    cpf VARCHAR(14) REFERENCES identidade(cpf)
-);
 
 -- Tabela: usuario
 CREATE TABLE usuario (
@@ -56,6 +38,27 @@ CREATE TABLE usuario (
 
 
 -- Banco de Dados SSP
+
+
+-- Tabela: pessoa_alerta
+CREATE TABLE pessoa_alerta (
+    id_alerta VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
+    cpf VARCHAR(14) REFERENCES identidade(cpf),
+    matricula VARCHAR(10) REFERENCES usuario(matricula)
+);
+
+
+-- Tabela: mensagem_alerta
+CREATE TABLE mensagem_alerta (
+    id_alerta VARCHAR REFERENCES pessoa_alerta(id_alerta),
+    id_mensagem VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
+    data_mensagem VARCHAR(50),
+    conteudo_mensagem TEXT,
+    matricula VARCHAR(10) REFERENCES usuario(matricula),
+    localizacao VARCHAR(150),
+    cpf VARCHAR(14) REFERENCES identidade(cpf)
+);
+
 
 -- Tabela: ficha_criminal
 CREATE TABLE ficha_criminal (
