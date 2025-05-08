@@ -1,8 +1,8 @@
-from sqlalchemy import TIMESTAMP, Column, Date, DateTime, ForeignKey, Integer, String, Boolean, Text
-from config.database import SspBase, CinBase
+from sqlalchemy import TIMESTAMP, Column, Date, Integer, String, Boolean, Text
+from config.database import SspCriminososBase, SspUsuarioBase
 
 
-class Usuario(CinBase):
+class Usuario(SspUsuarioBase):
 
     __tablename__ = "usuario"
 
@@ -24,7 +24,7 @@ class Usuario(CinBase):
     id_usuario = Column(String(50), nullable=False)
     data_criacao_conta = Column(TIMESTAMP, nullable=False)
 
-class Identidade(CinBase):
+class Identidade(SspCriminososBase):
     __tablename__ = "identidade"
 
     cpf = Column(String(14), primary_key=True, index=True)
@@ -33,29 +33,10 @@ class Identidade(CinBase):
     nome_pai = Column(String(150))
     data_nascimento = Column(String(20), nullable=False)
     vetor_facial = Column(String(180), nullable=False)
-    url_face = Column(String(255), nullable=False)
-
-class Pessoa_Alerta(CinBase):
-    __tablename__ = "pessoa_alerta"
-
-    id_alerta = Column(String(30), primary_key=True, index=True)
-    cpf = Column(String(14), nullable=False)
-    matricula = Column(String(10), nullable=False)
+    url_facial = Column(String(255), nullable=False)
 
 
-class Mensagens_Alerta(CinBase):
-    __tablename__ = "mensagem_alerta"
-
-    id_mensagem = Column(String(30), primary_key=True, index=True)
-    id_alerta = Column(String(30), nullable=False)
-    data_mensagem = Column(String(50), nullable=False)  
-    conteudo_mensagem = Column(String, nullable=False)
-    matricula = Column(String(20), nullable=False)
-    localizacao = Column(String(150), nullable=False)
-    cpf = Column(String(14), nullable=False)
-
-
-class FichaCriminal(SspBase):
+class FichaCriminal(SspCriminososBase):
     __tablename__ = "ficha_criminal"
 
     id_ficha = Column(String(30), primary_key=True, index=True)
@@ -65,7 +46,7 @@ class FichaCriminal(SspBase):
 
 
 
-class Crime(SspBase):
+class Crime(SspCriminososBase):
     __tablename__ = "crime"
 
     id_crime = Column(Integer, primary_key=True, index=True)
@@ -77,3 +58,4 @@ class Crime(SspBase):
     cidade = Column(String(100), nullable=False)
     estado = Column(String(2), nullable=False)
     status = Column(String(20), nullable=False)
+
