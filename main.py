@@ -4,6 +4,8 @@
 
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+
 from typing import Annotated
 from sqlalchemy.orm import Session
 
@@ -51,6 +53,14 @@ initialize_app(cred)
 # ----------- Carregar variáveis de ambiente -----------
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # ----------- Dependências -----------
