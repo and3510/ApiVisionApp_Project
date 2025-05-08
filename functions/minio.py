@@ -55,3 +55,43 @@ def upload_to_minio(bucket_name: str, file_name: str, object_name: str) -> str:
         raise PartialCredentialsError("Erro: Credenciais incompletas.")
     except Exception as e:
         raise Exception(f"Erro inesperado: {e}")
+    
+
+def delete_from_minio(bucket_name: str, object_name: str) -> None:
+    """
+    Remove um arquivo do MinIO com base no ID (nome do objeto no bucket).
+
+    :param bucket_name: Nome do bucket no MinIO.
+    :param object_name: Nome do arquivo no bucket.
+    :raises Exception: Caso ocorra algum erro durante a remoção.
+    """
+    # Configuração do cliente S3
+    endpoint_url = os.getenv("URL_MINIO")
+    s3 = boto3.resource(
+        's3',
+        endpoint_url=endpoint_url,
+        aws_access_key_id=os.getenv("ACCESS_KEY_MINIO"),
+        aws_secret_access_key=os.getenv("SECRET_KEY_MINIO"),
+        config=Config(signature_version='s3v4'),
+        region_name='us-east-1',
+    )
+
+    try:
+        # Verificar se o bucket existe
+        bucket = s3.Bucket(bucket_name)
+        if not bucket.creation_date:
+            raise Exception(f"Bucket '{bucket_name}' não encontrado.")
+
+        # Remover o arquivo do bucket
+        obj = bucket.Object(object_name)
+        obj.delete()
+        print(f"Arquivo '{object_name}' removido do bucket '{bucket_name}' com sucesso.")
+
+    except FileNotFoundError:
+        print(f"Erro: O arquivo '{object_name}' não foi encontrado no bucket '{bucket_name}'.")
+    except NoCredentialsError:
+        raise NoCredentialsError("Erro: Credenciais inválidas ou ausentes.")
+    except PartialCredentialsError:
+        raise PartialCredentialsError("Erro: Credenciais incompletas.")
+    except Exception as e:
+        raise Exception(f"Erro ao remover o arquivo: {e}")

@@ -9,6 +9,7 @@ from config.database import SspCriminososBase
 from functions.dependencias import get_ssp_criminosos_db
 import config.models as models
 from config.database import ssp_criminosos_engine
+from functions.minio import delete_from_minio
 
 
 
@@ -43,5 +44,11 @@ def delete_identidade(cpf: str, db: ssp_criminosos_db_dependency):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail="Erro ao remover a identidade: " + str(e))
+    
+    try:
+        # Remover a imagem associada no MinIO
+        delete_from_minio("imagens", f"{cpf}.png")
+    except Exception as e:  
+        raise HTTPException(status_code=500, detail="Erro ao remover a imagem associada: " + str(e))
 
     return {"message": "Identidade e dados associados removidos com sucesso."}
