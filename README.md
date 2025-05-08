@@ -102,6 +102,8 @@ FireAuth - Para Autentição com FireBase
 ![asd](images/latest.drawio.png)
 <p> Arquitetura do Sistema </p>
 
+![asd](images/interface_FastApi.png)
+<p> Interface do FastApi para realização de Requisições </p>
 
 
 </div>
