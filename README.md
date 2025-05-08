@@ -54,7 +54,7 @@ Este projeto consiste em uma API desenvolvida com FastAPI para reconhecimento fa
 | RF08 | O sistema deve permitir o envio de imagem por requisição (POST) para verificar a presença de um rosto válido. |
 | RF09 | O sistema deve realizar **autenticação de usuários via Firebase**. |
 | RF10 | O sistema deve gerar um **token JWT** com validade temporária após autenticação via Firebase. |
-| RF11 | O sistema deve segmentar as informações em dois bancos: **pessoas físicas** e **pessoas com antecedentes criminais**. |
+| RF11 | O sistema deve segmentar as informações em dois bancos: **usuarios** e **pessoas procuradas por crimes**. |
 
 
 ### Requisitos Não Funcionais (RNF)
@@ -67,11 +67,9 @@ Este projeto consiste em uma API desenvolvida com FastAPI para reconhecimento fa
 | RNF04 | Todas as comunicações entre cliente e servidor devem ocorrer via **HTTPS**. |
 | RNF05 | O sistema deve seguir os princípios de **segurança de dados**, evitando exposição de informações sensíveis. |
 | RNF06 | O sistema deve garantir **alta disponibilidade e escalabilidade**, podendo operar em ambientes com múltiplas requisições simultâneas. |
-| RNF07 | O tempo médio de resposta para reconhecimento facial deve ser inferior a **2 segundos**. |
+| RNF07 | O tempo médio de resposta para reconhecimento facial deve ser inferior a **3 segundos**. |
 | RNF08 | A API deve seguir boas práticas REST, com respostas em **formato JSON**. |
 | RNF09 | O sistema deve estar preparado para lidar com **falhas de rede, imagem inválida ou ausência de rosto**. |
-| RNF10 | O projeto deve ser **open source** e permitir fácil manutenção e extensão. |
-
 
 ## Tecnologias
 
@@ -80,6 +78,7 @@ Este projeto consiste em uma API desenvolvida com FastAPI para reconhecimento fa
 - Firebase
 - Docker
 - Postgresql
+- Minio
 
 
 ### Bibliotecas principais
@@ -92,6 +91,8 @@ dlib – Detecção facial por retângulo delimitador.
 face_recognition – Geração de vetores faciais (descritores de 128 dimensões).
 
 SQLAlchemy – ORM para integração com banco de dados relacional.
+
+FireAuth - Para Autentição com FireBase
 
 ## Fluxo do Software
 
