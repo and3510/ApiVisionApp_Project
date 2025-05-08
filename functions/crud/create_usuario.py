@@ -5,22 +5,26 @@ from fastapi import Depends, HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
 
-from config.database import CinBase
-from functions.dependencias import get_cin_db
+from config.database import SspUsuarioBase
+from functions.dependencias import get_ssp_usuario_db
 import config.models as models
-from config.database import cin_engine
+from config.database import ssp_usuario_engine
 from firebase_admin import auth
 
 
 
-cin_db_dependency = Annotated[Session, Depends(get_cin_db)]
+ssp_usuario_db_dependency = Annotated[Session, Depends(get_ssp_usuario_db)]
 
-CinBase.metadata.create_all(bind=cin_engine)
+SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
 
 
 def create_usuario(
-    db: cin_db_dependency,
+    db: ssp_usuario_db_dependency,
     matricula: str,
+    nome: str,
+    nome_mae: str,
+    nome_pai: str,
+    data_nascimento: str,
     cpf: str,
     telefone: str,
     sexo: str,
@@ -33,16 +37,6 @@ def create_usuario(
     nome_social: str = None
 ):
     
-    check_identidade = db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
-
-    if check_identidade:
-        nome = check_identidade.nome
-        nome_mae = check_identidade.nome_mae
-        nome_pai = check_identidade.nome_pai
-        data_nascimento = check_identidade.data_nascimento
-
-    else:
-        return {"error": "Identidade não encontrada."}
     
     # CPF como "e-mail" fake para Firebase (não é bonito, mas funciona)
     fake_email = f"{cpf}@app.com"

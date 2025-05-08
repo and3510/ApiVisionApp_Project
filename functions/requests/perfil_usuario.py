@@ -1,21 +1,21 @@
 from fastapi import Depends, HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
-from config.database import CinBase
-from functions.dependencias import get_cin_db
+from config.database import SspUsuarioBase
+from functions.dependencias import get_ssp_usuario_db
 import config.models as models
-from config.database import cin_engine
+from config.database import ssp_usuario_engine
 from functions.auth_utils import verify_token
 
 
 
-cin_db_dependency = Annotated[Session, Depends(get_cin_db)]
+ssp_usuario_db_dependency = Annotated[Session, Depends(get_ssp_usuario_db)]
 
-CinBase.metadata.create_all(bind=cin_engine)
+SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
 
 
 def perfil_usuario(
-    db: cin_db_dependency,
+    db: ssp_usuario_db_dependency,
     user_data: dict = Depends(verify_token),
 ):
     # Pega o id_usuario (uid) do token

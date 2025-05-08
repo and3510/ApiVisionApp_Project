@@ -4,20 +4,20 @@ from fastapi import Depends, HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
 
-from config.database import SspBase
+from config.database import SspCriminososBase
 
-from functions.dependencias import get_ssp_db
+from functions.dependencias import get_ssp_criminosos_db
 import config.models as models
-from config.database import ssp_engine
+from config.database import ssp_criminosos_engine
 
-ssp_db_dependency = Annotated[Session, Depends(get_ssp_db)]
+ssp_criminosos_db_dependency = Annotated[Session, Depends(get_ssp_criminosos_db)]
 
-SspBase.metadata.create_all(bind=ssp_engine)
+SspCriminososBase.metadata.create_all(bind=ssp_criminosos_engine)
 
 
 
 def update_ficha(
-    db: ssp_db_dependency,
+    db: ssp_criminosos_db_dependency,
     cpf: str,
     vulgo: str = None,
     foragido: bool = None,

@@ -1,15 +1,15 @@
-from config.database import SspSessionLocal, CinSessionLocal
+from config.database import SspUsuarioSessionLocal, SspCriminososSessionLocal
 
 
-def get_ssp_db():
-    db = SspSessionLocal()
+def get_ssp_usuario_db():
+    db = SspUsuarioSessionLocal()
     try:
         yield db
     finally:
         db.close()
 
-def get_cin_db():
-    db = CinSessionLocal()
+def get_ssp_criminosos_db():
+    db = SspCriminososSessionLocal()
     try:
         yield db
     finally:

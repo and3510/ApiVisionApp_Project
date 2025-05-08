@@ -7,23 +7,20 @@ import os
 import face_recognition
 from fastapi.responses import JSONResponse
 import numpy as np
-from config.database import CinBase, SspBase
+from config.database import SspCriminososBase
 from functions.clahe import aplicar_clahe
-from functions.dependencias import get_ssp_db, get_cin_db
+from functions.dependencias import get_ssp_criminosos_db
 import config.models as models
-from config.database import ssp_engine, cin_engine
+from config.database import ssp_criminosos_engine
 
 
-ssp_db_dependency = Annotated[Session, Depends(get_ssp_db)]
-cin_db_dependency = Annotated[Session, Depends(get_cin_db)]
+ssp_criminosos_db_dependency = Annotated[Session, Depends(get_ssp_criminosos_db)]
 
-SspBase.metadata.create_all(bind=ssp_engine)
-CinBase.metadata.create_all(bind=cin_engine)
+SspCriminososBase.metadata.create_all(bind=ssp_criminosos_engine)
 
 
 def buscar_similaridade(
-    db: cin_db_dependency,
-    ficha_db: ssp_db_dependency,
+    ficha_db: ssp_criminosos_db_dependency,
     file: UploadFile = File(...)
 ):
     temp_file = f"temp_{file.filename}"
@@ -39,7 +36,7 @@ def buscar_similaridade(
         raise HTTPException(status_code=400, detail="Nenhum rosto detectado.")
 
     vetor_facial = encodings[0]
-    identidades = db.query(models.Identidade).all()
+    identidades = ficha_db.query(models.Identidade).all()
     if not identidades:
         raise HTTPException(status_code=404, detail="Nenhuma identidade encontrada no banco de dados.")
 
@@ -53,7 +50,7 @@ def buscar_similaridade(
             "nome_mae": identidade.nome_mae,
             "nome_pai": identidade.nome_pai,
             "data_nascimento": identidade.data_nascimento,
-            "url_face": identidade.url_face,
+            "url_face": identidade.url_facial,
             "distancia": distancia,
         })
 
@@ -91,26 +88,13 @@ def buscar_similaridade(
         ]
     }
 
-    # Buscar todos os alertas relacionados ao CPF
-    alertas = ficha_db.query(models.Mensagens_Alerta).filter(models.Mensagens_Alerta.cpf == cpf).all()
-    alertas_formatados = [
-        {
-            "id_alerta": alerta.id_alerta,
-            "id_mensagem": alerta.id_mensagem,
-            "data_mensagem": alerta.data_mensagem,
-            "conteudo_mensagem": alerta.conteudo_mensagem,
-            "matricula": alerta.matricula,
-            "localizacao": alerta.localizacao,
-        }
-        for alerta in alertas
-    ]
+    
 
     if mais_similar["distancia"] < LIMIAR_CONFIANTE:
         return JSONResponse(content={
             "status": "confiante",
             "identidade": mais_similar,
             "ficha_criminal": ficha_criminal_info,
-            "alertas": alertas_formatados
         })
 
     elif mais_similar["distancia"] < LIMIAR_AMBÍGUO:

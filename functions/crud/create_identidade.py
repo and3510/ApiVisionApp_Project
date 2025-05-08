@@ -11,25 +11,25 @@ import os
 
 import face_recognition
 
-from config.database import CinBase
+from config.database import SspCriminososBase
 from functions.clahe import aplicar_clahe
-from functions.dependencias import get_cin_db
+from functions.dependencias import get_ssp_criminosos_db
 import config.models as models
-from config.database import cin_engine
+from config.database import ssp_criminosos_engine
 from functions.minio import upload_to_minio
 
 
 
 
-cin_db_dependency = Annotated[Session, Depends(get_cin_db)]
+ssp_criminosos_db_dependency = Annotated[Session, Depends(get_ssp_criminosos_db)]
 
 
-CinBase.metadata.create_all(bind=cin_engine)
+SspCriminososBase.metadata.create_all(bind=ssp_criminosos_engine)
 
 
 
 def create_identidade(
-    db: cin_db_dependency,
+    db: ssp_criminosos_db_dependency,
     cpf: str,
     nome: str,
     nome_mae: str,
@@ -65,25 +65,25 @@ def create_identidade(
     vetor_facial_reduzido = [round(float(x), 5) for x in vetor_facial[:]]
 
     # Criar o registro na tabela Identidade
-    db_identidade = models.Identidade(
+    db_ficha = models.Identidade(
         cpf=cpf,
         nome=nome,
         nome_pai=nome_pai,
         nome_mae=nome_mae,
         data_nascimento=data_nascimento,
         vetor_facial=json.dumps(vetor_facial_reduzido),
-        url_face=url  # Armazena a URL gerada pelo MinIO
+        url_facial=url  # Armazena a URL gerada pelo MinIO
     )
-    db.add(db_identidade)
+    db.add(db_ficha)
     db.commit()
-    db.refresh(db_identidade)
+    db.refresh(db_ficha)
 
     return {
-        "cpf": db_identidade.cpf,
-        "nome": db_identidade.nome,
-        "nome_mae": db_identidade.nome_mae,
-        "nome_pai": db_identidade.nome_pai,
-        "data_nascimento": db_identidade.data_nascimento,
+        "cpf": db_ficha.cpf,
+        "nome": db_ficha.nome,
+        "nome_mae": db_ficha.nome_mae,
+        "nome_pai": db_ficha.nome_pai,
+        "data_nascimento": db_ficha.data_nascimento,
         "vetor_facial": vetor_facial_reduzido,
-        "foto_url": db_identidade.url_face  # Retorna a URL da foto
+        "foto_url": db_ficha.url_facial  # Retorna a URL da foto
     }

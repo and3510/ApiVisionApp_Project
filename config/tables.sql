@@ -1,17 +1,4 @@
--- Banco de Dados CIN
-
-
--- Tabela: identidade
-CREATE TABLE identidade (
-    cpf VARCHAR(14) PRIMARY KEY,
-    nome VARCHAR(150) NOT NULL,
-    nome_mae VARCHAR(150) NOT NULL,
-    nome_pai VARCHAR(150) NOT NULL,
-    data_nascimento VARCHAR(20) NOT NULL,
-    vetor_facial VECTOR(128) NOT NULL,
-    url_facial VARCHAR(200) NOT NULL,
-
-);
+-- Banco de Dados SSP-USUARIO
 
 
 
@@ -24,7 +11,7 @@ CREATE TABLE usuario (
     nome_mae VARCHAR(150),
     nome_pai VARCHAR(150),
     data_nascimento VARCHAR(20),
-    cpf VARCHAR(14) unique REFERENCES identidade(cpf),
+    cpf VARCHAR(14) unique,
     telefone VARCHAR(20),
     sexo CHAR(5),  -- Ex: 'M', 'F', 'O'
     nacionalidade VARCHAR(100),
@@ -37,26 +24,23 @@ CREATE TABLE usuario (
 );
 
 
--- Banco de Dados SSP
+-- Banco de Dados SSP-CRIMINOSOS
 
 
--- Tabela: pessoa_alerta
-CREATE TABLE pessoa_alerta (
-    id_alerta VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
-    cpf VARCHAR(14) REFERENCES identidade(cpf),
-    matricula VARCHAR(10) REFERENCES usuario(matricula)
-);
+-- Tabela: identidade
+
+CREATE EXTENSION vector;
 
 
--- Tabela: mensagem_alerta
-CREATE TABLE mensagem_alerta (
-    id_alerta VARCHAR REFERENCES pessoa_alerta(id_alerta),
-    id_mensagem VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
-    data_mensagem VARCHAR(50),
-    conteudo_mensagem TEXT,
-    matricula VARCHAR(10) REFERENCES usuario(matricula),
-    localizacao VARCHAR(150),
-    cpf VARCHAR(14) REFERENCES identidade(cpf)
+CREATE TABLE identidade (
+    cpf VARCHAR(14) PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    nome_mae VARCHAR(150) NOT NULL,
+    nome_pai VARCHAR(150) NOT NULL,
+    data_nascimento VARCHAR(20) NOT NULL,
+    vetor_facial VECTOR(128) NOT NULL,
+    url_facial VARCHAR(200) NOT NULL,
+
 );
 
 
@@ -78,6 +62,5 @@ CREATE TABLE crime (
     data_ocorrencia VARCHAR(20),
     cidade VARCHAR(100),
     estado CHAR(2),
-    status VARCHAR(20) CHECK (status IN ('Em Aberto', 'Condenado', 'Absolvido', 'Arquivado', 'Cumprido')),
+    status VARCHAR(20) CHECK (status IN ('Em Aberto', 'Foragido'))
 );
-

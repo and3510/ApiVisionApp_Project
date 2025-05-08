@@ -4,32 +4,41 @@ from fastapi import Depends, HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
 
-from config.database import CinBase
+from config.database import SspCriminososBase
 
-from functions.crud.delete_usuario import delete_usuario
-from functions.dependencias import get_cin_db
+from functions.dependencias import get_ssp_criminosos_db
 import config.models as models
-from config.database import cin_engine
+from config.database import ssp_criminosos_engine
 
 
 
-cin_db_dependency = Annotated[Session, Depends(get_cin_db)]
+ssp_criminosos_db_dependency = Annotated[Session, Depends(get_ssp_criminosos_db)]
 
 
-CinBase.metadata.create_all(bind=cin_engine)
+SspCriminososBase.metadata.create_all(bind=ssp_criminosos_engine)
 
 
-async def delete_identidade(cpf: str, db: cin_db_dependency):
+async def delete_identidade(cpf: str, db: ssp_criminosos_db_dependency):
     # Verificar se a identidade existe
     identidade = db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
     if not identidade:
         raise HTTPException(status_code=404, detail="Identidade não encontrada.")
+    
+    ficha = db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == cpf).first()
 
-    # Verificar se a identidade está associada a um usuário
-    usuario = db.query(models.Usuario).filter(models.Usuario.cpf == cpf).first()
-    if usuario:
-        # Reutilizar a função delete_usuario para remover o usuário e seus dados associados
-        await delete_usuario(usuario.matricula, db)
+    
+    crimes = db.query(models.Crime).filter(models.Crime.id_ficha == ficha.id_ficha).all()
+
+    if crimes:
+        # Remover os crimes associados
+        for crime in crimes:
+            db.delete(crime)
+
+    if ficha:
+        # Remover a ficha criminal associada
+        db.delete(ficha)
+    
+
 
     # Remover a identidade
     db.delete(identidade)

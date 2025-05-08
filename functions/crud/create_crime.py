@@ -7,28 +7,24 @@ from typing import Annotated
 from sqlalchemy.orm import Session
 
 from uuid import uuid4
-from config.database import CinBase, SspBase
-from functions.dependencias import get_ssp_db, get_cin_db
+from config.database import SspCriminososBase
+from functions.dependencias import get_ssp_criminosos_db
 import config.models as models
-from config.database import ssp_engine, cin_engine
+from config.database import ssp_criminosos_engine
 
 
-ssp_db_dependency = Annotated[Session, Depends(get_ssp_db)]
-cin_db_dependency = Annotated[Session, Depends(get_cin_db)]
+ssp_criminosos_db_dependency = Annotated[Session, Depends(get_ssp_criminosos_db)]
 
-SspBase.metadata.create_all(bind=ssp_engine)
-CinBase.metadata.create_all(bind=cin_engine)
+
+SspCriminososBase.metadata.create_all(bind=ssp_criminosos_engine)
+
 
 class CrimeStatus(str, Enum):
     investigando = "Em Aberto"
-    condenado = "Condenado"
-    cumprindo = "Cumprido"
-    absolvido = "Absolvido"
-    arquivado = "Arquivado"
+    foragido = "Foragido"
 
 def create_crime(
-    db: ssp_db_dependency,
-    db1: cin_db_dependency,
+    db: ssp_criminosos_db_dependency,
     cpf: str,
     nome_crime: str,
     artigo: str,
@@ -42,7 +38,7 @@ def create_crime(
 
 
     # Verifica se o CPF existe na tabela Identidade
-    identidade = db1.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
+    identidade = db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
     if not identidade:
         raise HTTPException(status_code=404, detail="CPF não encontrado na tabela Identidade.")
 

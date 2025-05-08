@@ -5,26 +5,23 @@ from fastapi import Depends, HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
 
-from config.database import CinBase, SspBase
+from config.database import SspUsuarioBase
 
-from functions.dependencias import get_cin_db, get_ssp_db
+from functions.dependencias import get_ssp_usuario_db
 import config.models as models
-from config.database import cin_engine, ssp_engine
+from config.database import ssp_usuario_engine
 from firebase_admin import auth
 
 
 
-ssp_db_dependency = Annotated[Session, Depends(get_ssp_db)]
-cin_db_dependency = Annotated[Session, Depends(get_cin_db)]
+ssp_usuario_db_dependency = Annotated[Session, Depends(get_ssp_usuario_db)]
 
-SspBase.metadata.create_all(bind=ssp_engine)
-CinBase.metadata.create_all(bind=cin_engine)
+SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
 
-def delete_usuario(matricula: str, db: cin_db_dependency, db1: ssp_db_dependency):
+
+def delete_usuario(matricula: str, db: ssp_usuario_db_dependency):
     # Recuperar o usuário do banco de dados usando matrícula
     db_usuario = db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
-    alertas_usuario = db1.query(models.Mensagens_Alerta).filter(models.Mensagens_Alerta.matricula == matricula).all()
-    usuario_noAlerta = db1.query(models.Pessoa_Alerta).filter(models.Pessoa_Alerta.matricula == matricula).all()
 
     if not db_usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
@@ -42,13 +39,6 @@ def delete_usuario(matricula: str, db: cin_db_dependency, db1: ssp_db_dependency
 
     # Remover o usuário do banco de dados
 
-    if alertas_usuario:
-        for alerta in alertas_usuario:
-            db.delete(alerta)
-
-    if usuario_noAlerta:
-        for alerta in usuario_noAlerta:
-            db.delete(alerta)
 
     db.delete(db_usuario)
     db.commit()

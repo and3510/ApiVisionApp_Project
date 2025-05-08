@@ -7,13 +7,13 @@ from pydantic import BaseModel
 from typing import Annotated
 from sqlalchemy.orm import Session
 
-from config.database import CinBase, SspBase
+from config.database import SspUsuarioBase, SspCriminososBase
 from functions.auth_crud import verify_crud_api_key
 
 
-from functions.dependencias import get_ssp_db, get_cin_db
+from functions.dependencias import get_ssp_usuario_db, get_ssp_criminosos_db
 
-from config.database import ssp_engine, cin_engine
+from config.database import ssp_usuario_engine, ssp_criminosos_engine
 from firebase_admin import credentials, initialize_app
 
 from dotenv import load_dotenv
@@ -24,8 +24,6 @@ from functions.auth_utils import verify_token
 from functions.requests.auth_with_firebase import auth_with_firebase
 from functions.requests.buscar_ficha_criminal import buscar_ficha_criminal 
 from functions.requests.buscar_similaridade import buscar_similaridade
-from functions.requests.cpfs_com_alerta import cpfs_com_alerta
-from functions.requests.create_mensagem_alerta import create_mensagem_alerta
 from functions.requests.perfil_usuario import perfil_usuario
 
 from functions.crud.create_identidade import create_identidade
@@ -58,11 +56,11 @@ app = FastAPI()
 # ----------- Dependências -----------
 
 
-ssp_db_dependency = Annotated[Session, Depends(get_ssp_db)]
-cin_db_dependency = Annotated[Session, Depends(get_cin_db)]
+ssp_usuario_db_dependency = Annotated[Session, Depends(get_ssp_usuario_db)]
+ssp_criminosos_db_dependency = Annotated[Session, Depends(get_ssp_criminosos_db)]
 
-SspBase.metadata.create_all(bind=ssp_engine)
-CinBase.metadata.create_all(bind=cin_engine)
+SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
+SspCriminososBase.metadata.create_all(bind=ssp_criminosos_engine)
 
 
 # ---------- Rotas -----------
@@ -76,7 +74,7 @@ class FirebaseToken(BaseModel):
 @app.get("/usuario/perfil", tags=["Requisição do Aplicativo"], dependencies=[Depends(verify_token)])
 
 async def get_perfil_usuario(
-    db: cin_db_dependency,
+    db: ssp_usuario_db_dependency,
     user_data: dict = Depends(verify_token),
 ):
     return perfil_usuario(db, user_data)
@@ -95,12 +93,11 @@ async def get_firebase_auth(
 @app.post("/buscar-similaridade-foto/", tags=["Requisição do Aplicativo"])
 
 async def get_buscar_similaridade(
-    db: cin_db_dependency,
-    ficha_db: ssp_db_dependency,
+    ficha_db: ssp_criminosos_db_dependency,
     file: UploadFile = File(...)
 ):
     try:
-        return buscar_similaridade(db, ficha_db, file)
+        return buscar_similaridade(ficha_db, file)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     
@@ -110,37 +107,12 @@ async def get_buscar_similaridade(
 
 async def get_buscar_ficha_criminal(
     cpf: str,
-    identidade_db: cin_db_dependency,
-    ficha_db: ssp_db_dependency
+    ficha_db: ssp_criminosos_db_dependency
 ):
     try:
-        return buscar_ficha_criminal(cpf, identidade_db, ficha_db)
+        return buscar_ficha_criminal(cpf, ficha_db)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
-
-
-@app.get("/alertas/cpfs",  tags=["Requisição do Aplicativo"])
-async def get_cpfs_com_alerta(db: ssp_db_dependency, db1: cin_db_dependency):
-    try:
-        return cpfs_com_alerta(db, db1)
-    except HTTPException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
-
-
-@app.post("/create-mensagem-alerta/", tags=["Requisição do Aplicativo"])
-async def get_create_mensagem_alerta(
-    db: ssp_db_dependency,
-    db1: cin_db_dependency,
-    cpf: str,
-    conteudo_mensagem: str,
-    matricula: str,
-    localizacao: str
-):
-    try:
-        return create_mensagem_alerta(db,db1, cpf, conteudo_mensagem, matricula, localizacao)
-    except HTTPException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
-
 
 
 
@@ -150,7 +122,7 @@ async def get_create_mensagem_alerta(
 @app.post("/create-identidade/", dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
 
 async def get_create_identidade(
-    db: cin_db_dependency,
+    db: ssp_criminosos_db_dependency,
     cpf: str,
     nome: str,
     nome_mae: str,
@@ -173,7 +145,7 @@ async def get_create_identidade(
 
 
 @app.delete("/delete-identidade/{cpf}", dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
-async def get_delete_identidade(cpf: str, db: cin_db_dependency):
+async def get_delete_identidade(cpf: str, db: ssp_criminosos_db_dependency):
     try:
         return delete_identidade(cpf, db)
     except HTTPException as e:
@@ -183,8 +155,12 @@ async def get_delete_identidade(cpf: str, db: cin_db_dependency):
 
 @app.post("/create-usuario/",  dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
 async def get_create_usuario(
-    db: cin_db_dependency,
+    db: ssp_usuario_db_dependency,
     matricula: str,
+    nome: str,
+    nome_mae: str,
+    nome_pai: str,
+    data_nascimento: str,
     cpf: str,
     telefone: str,
     sexo: str,
@@ -200,6 +176,10 @@ async def get_create_usuario(
         return create_usuario(
             db,
             matricula,
+            nome,
+            nome_mae,
+            nome_pai,
+            data_nascimento,
             cpf,
             telefone,
             sexo,
@@ -218,7 +198,7 @@ async def get_create_usuario(
 @app.put("/update-usuario/{matricula}",  dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
 async def get_update_usuario(
     matricula: str,
-    db: cin_db_dependency,
+    db: ssp_usuario_db_dependency,
     nome: str = None,
     nome_social: str = None,
     nome_mae: str = None,
@@ -257,17 +237,17 @@ async def get_update_usuario(
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 @app.delete("/delete-usuario/{matricula}",  dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
-async def get_delete_usuario(matricula: str, db: cin_db_dependency, db1: ssp_db_dependency):
+async def get_delete_usuario(matricula: str, db: ssp_usuario_db_dependency):
     
     try:    
-        return delete_usuario(matricula, db, db1)
+        return delete_usuario(matricula, db)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
 @app.put("/update-ficha/",   dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
 async def get_update_ficha(
-    db: ssp_db_dependency,
+    db: ssp_criminosos_db_dependency,
     cpf: str,
     vulgo: str = None,
     foragido: bool = None,
@@ -285,8 +265,7 @@ async def get_update_ficha(
 
 @app.post("/create-crime/",   dependencies=[Depends(verify_crud_api_key)], tags=["CRUD"])
 async def get_create_crime(
-    db: ssp_db_dependency,
-    db1: cin_db_dependency,
+    db: ssp_criminosos_db_dependency,
     cpf: str,
     nome_crime: str,
     artigo: str,
@@ -300,7 +279,6 @@ async def get_create_crime(
     try:
         return create_crime(
             db,
-            db1,
             cpf,
             nome_crime,
             artigo,
