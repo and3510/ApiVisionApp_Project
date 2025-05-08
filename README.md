@@ -98,10 +98,9 @@ FireAuth - Para Autentição com FireBase
 
 <div align="center"> 
 
-![asd](images/image.png)
-
 
 ![asd](images/latest.drawio.png)
+<p> Arquitetura do Sistema </p>
 
 
 
