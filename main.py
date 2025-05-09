@@ -260,14 +260,12 @@ async def get_update_ficha(
     db: ssp_criminosos_db_dependency,
     cpf: str,
     vulgo: str = None,
-    foragido: bool = None,
 ):
     try:
         return update_ficha(
             db,
             cpf,
-            vulgo,
-            foragido
+            vulgo
         )
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
