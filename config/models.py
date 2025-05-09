@@ -42,8 +42,6 @@ class FichaCriminal(SspCriminososBase):
     id_ficha = Column(String(30), primary_key=True, index=True)
     cpf = Column(String(14), primary_key=True, index=True)
     vulgo = Column(String(100), nullable=False)
-    foragido = Column(Boolean, default=False)
-
 
 
 class Crime(SspCriminososBase):

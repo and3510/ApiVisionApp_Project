@@ -99,14 +99,23 @@ FireAuth - Para Autentição com FireBase
 <div align="center"> 
 
 
-![asd](images/latest.drawio.png)
+![Imagem do Diagrama da Arquitetura do Sistema](images/latest.drawio.png)
 <p> Arquitetura do Sistema </p>
 
-![asd](images/interface_FastApi.png)
+</div>
+
+De acordo com diagrama da imagem, a autenticação é realizada via Firebase, garantindo o acesso seguro dos usuários por meio de tokens JWT. A API desenvolvida com FastAPI gerencia o recebimento de fotos, CPF e a autenticação, realizando o reconhecimento facial e a consulta de informações em bancos PostgreSQL e no serviço de armazenamento MinIO. O sistema permite identificar usuários ou suspeitos a partir da análise facial, cruzando dados com os cadastros existentes. Por fim, os resultados são retornados à aplicação móvel, completando o fluxo de verificação e resposta.
+
+<div align="center"> 
+
+![Imagem da Interface do FastApi](images/interface_FastApi.png)
 <p> Interface do FastApi para realização de Requisições </p>
 
-
 </div>
+
+A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão listadas as principais requisições que a aplicação móvel pode realizar. Entre elas, destaca-se o endpoint /auth/firebase, responsável pela autenticação via Firebase, e o ´/buscar-similaridade-foto´, que permite o envio de uma imagem para análise de similaridade facial. Além disso, o endpoint /buscar-ficha-criminal/{cpf} possibilita a consulta da ficha criminal a partir do CPF, enquanto o /usuario/perfil recupera os dados do perfil do usuário autenticado. Todas as rotas exigem autenticação, garantindo segurança nas interações entre o app e o servidor.
+
+
 
 
 

@@ -35,6 +35,7 @@ def buscar_similaridade(
     if not encodings:
         raise HTTPException(status_code=400, detail="Nenhum rosto detectado.")
 
+
     vetor_facial = encodings[0]
     identidades = ficha_db.query(models.Identidade).all()
     if not identidades:
@@ -71,8 +72,7 @@ def buscar_similaridade(
     ficha_criminal_info = {
         "ficha_criminal": {
             "id_ficha": ficha_criminal.id_ficha,
-            "vulgo": ficha_criminal.vulgo,
-            "foragido": ficha_criminal.foragido
+            "vulgo": ficha_criminal.vulgo
         } if ficha_criminal else None,
         "crimes": [
             {

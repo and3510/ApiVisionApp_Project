@@ -48,8 +48,7 @@ CREATE TABLE identidade (
 CREATE TABLE ficha_criminal (
     id_ficha VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
     cpf VARCHAR(14) REFERENCES identidade(cpf),
-    vulgo VARCHAR(100),
-    foragido BOOLEAN
+    vulgo VARCHAR(100)
 );
 
 -- Tabela: crime

@@ -37,7 +37,6 @@ def buscar_ficha_criminal(cpf: str, ficha_db: ssp_criminosos_db_dependency):
         "ficha_criminal": {
             "id_ficha": ficha_criminal.id_ficha if ficha_criminal else None,
             "vulgo": ficha_criminal.vulgo if ficha_criminal else None,
-            "foragido": ficha_criminal.foragido if ficha_criminal else None,
         },
         "crimes": [
             {

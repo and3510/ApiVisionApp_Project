@@ -50,7 +50,6 @@ def create_crime(
             id_ficha=str(uuid4()).replace("-", "")[:30],  # Trunca o UUID para 30 caracteres
             cpf=cpf,
             vulgo=vulgo,  # Valor padrão para vulgo
-            foragido=False  # Valor padrão para foragido
         )
         db.add(ficha_criminal)
         db.commit()
