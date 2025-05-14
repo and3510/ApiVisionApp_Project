@@ -99,10 +99,64 @@ def buscar_similaridade(
 
     elif mais_similar["distancia"] < LIMIAR_AMBÍGUO:
         segunda_mais_similar = similaridades[1] if len(similaridades) > 1 else None
+        
+        # Buscar ficha criminal do mais similar
+        ficha_criminal_mais_similar = None
+        if mais_similar:
+            ficha_criminal_1 = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == mais_similar["cpf"]).first()
+            crimes_1 = []
+            if ficha_criminal_1:
+                crimes_1 = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal_1.id_ficha).all()
+            ficha_criminal_mais_similar = {
+                "ficha_criminal": {
+                    "id_ficha": ficha_criminal_1.id_ficha,
+                    "vulgo": ficha_criminal_1.vulgo
+                } if ficha_criminal_1 else None,
+                "crimes": [
+                    {
+                        "id_crime": crime.id_crime,
+                        "nome_crime": crime.nome_crime,
+                        "artigo": crime.artigo,
+                        "descricao": crime.descricao,
+                        "cidade": crime.cidade,
+                        "estado": crime.estado,
+                        "status": crime.status
+                    }
+                    for crime in crimes_1
+                ]
+            }
+
+        # Buscar ficha criminal do segundo mais similar
+        ficha_criminal_segundo_similar = None
+        if segunda_mais_similar:
+            ficha_criminal_2 = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == segunda_mais_similar["cpf"]).first()
+            crimes_2 = []
+            if ficha_criminal_2:
+                crimes_2 = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal_2.id_ficha).all()
+            ficha_criminal_segundo_similar = {
+                "ficha_criminal": {
+                    "id_ficha": ficha_criminal_2.id_ficha,
+                    "vulgo": ficha_criminal_2.vulgo
+                } if ficha_criminal_2 else None,
+                "crimes": [
+                    {
+                        "id_crime": crime.id_crime,
+                        "nome_crime": crime.nome_crime,
+                        "artigo": crime.artigo,
+                        "descricao": crime.descricao,
+                        "cidade": crime.cidade,
+                        "estado": crime.estado,
+                        "status": crime.status
+                    }
+                    for crime in crimes_2
+                ]
+            }
+
         return JSONResponse(content={
             "status": "ambíguo",
             "mais_proximas": [mais_similar, segunda_mais_similar],
-            "ficha_criminal": ficha_criminal_info,
+            "ficha_criminal_mais_similar": ficha_criminal_mais_similar,
+            "ficha_criminal_segundo_similar": ficha_criminal_segundo_similar,
         })
 
     else:
