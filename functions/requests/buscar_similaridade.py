@@ -99,7 +99,7 @@ def buscar_similaridade(
 
     elif mais_similar["distancia"] < LIMIAR_AMBÍGUO:
         segunda_mais_similar = similaridades[1] if len(similaridades) > 1 else None
-        
+
         # Buscar ficha criminal do mais similar
         ficha_criminal_mais_similar = None
         if mais_similar:
@@ -108,6 +108,7 @@ def buscar_similaridade(
             if ficha_criminal_1:
                 crimes_1 = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal_1.id_ficha).all()
             ficha_criminal_mais_similar = {
+                "identidade": mais_similar,
                 "ficha_criminal": {
                     "id_ficha": ficha_criminal_1.id_ficha,
                     "vulgo": ficha_criminal_1.vulgo
@@ -134,6 +135,7 @@ def buscar_similaridade(
             if ficha_criminal_2:
                 crimes_2 = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal_2.id_ficha).all()
             ficha_criminal_segundo_similar = {
+                "identidade": segunda_mais_similar,
                 "ficha_criminal": {
                     "id_ficha": ficha_criminal_2.id_ficha,
                     "vulgo": ficha_criminal_2.vulgo
@@ -154,9 +156,8 @@ def buscar_similaridade(
 
         return JSONResponse(content={
             "status": "ambíguo",
-            "mais_proximas": [mais_similar, segunda_mais_similar],
-            "ficha_criminal_mais_similar": ficha_criminal_mais_similar,
-            "ficha_criminal_segundo_similar": ficha_criminal_segundo_similar,
+            "primeiro_encontrado": ficha_criminal_mais_similar,
+            "segundo_encontrado": ficha_criminal_segundo_similar,
         })
 
     else:
