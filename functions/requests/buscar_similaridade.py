@@ -102,6 +102,7 @@ def buscar_similaridade(
         return JSONResponse(content={
             "status": "ambíguo",
             "mais_proximas": [mais_similar, segunda_mais_similar],
+            "ficha_criminal": ficha_criminal_info,
         })
 
     else:
