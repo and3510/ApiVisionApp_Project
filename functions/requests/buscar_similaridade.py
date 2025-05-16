@@ -80,6 +80,7 @@ def buscar_similaridade(
                 "nome_crime": crime.nome_crime,
                 "artigo": crime.artigo,
                 "descricao": crime.descricao,
+                "data_ocorrencia": crime.data_ocorrencia,
                 "cidade": crime.cidade,
                 "estado": crime.estado,
                 "status": crime.status
@@ -119,6 +120,7 @@ def buscar_similaridade(
                         "nome_crime": crime.nome_crime,
                         "artigo": crime.artigo,
                         "descricao": crime.descricao,
+                        "data_ocorrencia": crime.data_ocorrencia,
                         "cidade": crime.cidade,
                         "estado": crime.estado,
                         "status": crime.status
@@ -146,6 +148,7 @@ def buscar_similaridade(
                         "nome_crime": crime.nome_crime,
                         "artigo": crime.artigo,
                         "descricao": crime.descricao,
+                        "data_ocorrencia": crime.data_ocorrencia,
                         "cidade": crime.cidade,
                         "estado": crime.estado,
                         "status": crime.status
