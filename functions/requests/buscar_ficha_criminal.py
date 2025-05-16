@@ -44,6 +44,7 @@ def buscar_ficha_criminal(cpf: str, ficha_db: ssp_criminosos_db_dependency):
                 "nome_crime": crime.nome_crime,
                 "artigo": crime.artigo,
                 "descricao": crime.descricao,
+                "data_ocorrencia": crime.data_ocorrencia,
                 "cidade": crime.cidade,
                 "estado": crime.estado,
                 "status": crime.status,
