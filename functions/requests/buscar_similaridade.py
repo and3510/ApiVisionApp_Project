@@ -56,20 +56,54 @@ def buscar_similaridade(
         })
 
     # Ordena pela menor distância
+    # Ordena pela menor distância
     similaridades.sort(key=lambda x: x["distancia"])
-    mais_similar = similaridades[0]
 
+    # Define os limiares
     LIMIAR_CONFIANTE = 0.4
     LIMIAR_AMBÍGUO = 0.5
 
-    # Buscar ficha criminal associada ao CPF
-    cpf = mais_similar["cpf"]
+    # Filtra os candidatos ambíguos
+    ambiguos = [p for p in similaridades if p["distancia"] < LIMIAR_AMBÍGUO]
+
+    # Caso 1: Confiança Alta (menor que limiar confiante)
+    if ambiguos and ambiguos[0]["distancia"] < LIMIAR_CONFIANTE:
+        identidade_confiante = ambiguos[0]
+        ficha_criminal_info = buscar_ficha_criminal_completa(ficha_db, identidade_confiante["cpf"])
+        return JSONResponse(content={
+            "status": "confiante",
+            "identidade": identidade_confiante,
+            "ficha_criminal": ficha_criminal_info,
+        })
+
+    # Caso 2: Ambiguidade (um ou mais abaixo do limiar ambíguo, mas nenhum confiável)
+    elif len(ambiguos) > 0:
+        resultados_ambiguos = []
+        for identidade in ambiguos:
+            ficha_criminal_info = buscar_ficha_criminal_completa(ficha_db, identidade["cpf"])
+            resultados_ambiguos.append({
+                "identidade": identidade,
+                "ficha_criminal": ficha_criminal_info
+            })
+
+        return JSONResponse(content={
+            "status": "ambíguo",
+            "possiveis_identidades": resultados_ambiguos
+        })
+
+    # Caso 3: Nenhuma similaridade aceitável
+    else:
+        return JSONResponse(content={
+            "status": "nenhuma similaridade forte"
+        })
+    
+
+def buscar_ficha_criminal_completa(ficha_db, cpf):
     ficha_criminal = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == cpf).first()
     crimes = []
     if ficha_criminal:
         crimes = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal.id_ficha).all()
-
-    ficha_criminal_info = {
+    return {
         "ficha_criminal": {
             "id_ficha": ficha_criminal.id_ficha,
             "vulgo": ficha_criminal.vulgo
@@ -89,81 +123,3 @@ def buscar_similaridade(
         ]
     }
 
-    
-
-    if mais_similar["distancia"] < LIMIAR_CONFIANTE:
-        return JSONResponse(content={
-            "status": "confiante",
-            "identidade": mais_similar,
-            "ficha_criminal": ficha_criminal_info,
-        })
-
-    elif mais_similar["distancia"] < LIMIAR_AMBÍGUO:
-        segunda_mais_similar = similaridades[1] if len(similaridades) > 1 else None
-
-        # Buscar ficha criminal do mais similar
-        ficha_criminal_mais_similar = None
-        if mais_similar:
-            ficha_criminal_1 = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == mais_similar["cpf"]).first()
-            crimes_1 = []
-            if ficha_criminal_1:
-                crimes_1 = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal_1.id_ficha).all()
-            ficha_criminal_mais_similar = {
-                "identidade": mais_similar,
-                "ficha_criminal": {
-                    "id_ficha": ficha_criminal_1.id_ficha,
-                    "vulgo": ficha_criminal_1.vulgo
-                } if ficha_criminal_1 else None,
-                "crimes": [
-                    {
-                        "id_crime": crime.id_crime,
-                        "nome_crime": crime.nome_crime,
-                        "artigo": crime.artigo,
-                        "descricao": crime.descricao,
-                        "data_ocorrencia": crime.data_ocorrencia,
-                        "cidade": crime.cidade,
-                        "estado": crime.estado,
-                        "status": crime.status
-                    }
-                    for crime in crimes_1
-                ]
-            }
-
-        # Buscar ficha criminal do segundo mais similar
-        ficha_criminal_segundo_similar = None
-        if segunda_mais_similar:
-            ficha_criminal_2 = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == segunda_mais_similar["cpf"]).first()
-            crimes_2 = []
-            if ficha_criminal_2:
-                crimes_2 = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal_2.id_ficha).all()
-            ficha_criminal_segundo_similar = {
-                "identidade": segunda_mais_similar,
-                "ficha_criminal": {
-                    "id_ficha": ficha_criminal_2.id_ficha,
-                    "vulgo": ficha_criminal_2.vulgo
-                } if ficha_criminal_2 else None,
-                "crimes": [
-                    {
-                        "id_crime": crime.id_crime,
-                        "nome_crime": crime.nome_crime,
-                        "artigo": crime.artigo,
-                        "descricao": crime.descricao,
-                        "data_ocorrencia": crime.data_ocorrencia,
-                        "cidade": crime.cidade,
-                        "estado": crime.estado,
-                        "status": crime.status
-                    }
-                    for crime in crimes_2
-                ]
-            }
-
-        return JSONResponse(content={
-            "status": "ambíguo",
-            "primeiro_encontrado": ficha_criminal_mais_similar,
-            "segundo_encontrado": ficha_criminal_segundo_similar,
-        })
-
-    else:
-        return JSONResponse(content={
-            "status": "nenhuma similaridade forte",
-        })
