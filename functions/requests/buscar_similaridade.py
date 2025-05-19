@@ -29,7 +29,7 @@ def buscar_similaridade(
 
     # Processar a imagem com CLAHE
     imagem = aplicar_clahe(temp_file)
-    encodings = face_recognition.face_encodings(imagem, num_jitters=30, model="large")
+    encodings = face_recognition.face_encodings(imagem, num_jitters=10, model="large")
     os.remove(temp_file)
 
     if not encodings:
