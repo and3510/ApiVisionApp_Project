@@ -43,7 +43,7 @@ def create_identidade(
 
     # Processar a imagem com CLAHE
     imagem = aplicar_clahe(temp_file)
-    encodings = face_recognition.face_encodings(imagem, num_jitters=10, model="large")
+    encodings = face_recognition.face_encodings(imagem, num_jitters=30, model="large")
     if not encodings:
         os.remove(temp_file)
         raise HTTPException(status_code=400, detail="Nenhum rosto detectado.")
