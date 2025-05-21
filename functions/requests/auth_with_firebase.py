@@ -20,7 +20,7 @@ def auth_with_firebase(token_data: str):
         decoded_token = auth.verify_id_token(token_data)
         user_id = decoded_token["uid"]
 
-        expire = datetime.utcnow() + timedelta(minutes=1440)
+        expire = datetime.utcnow() + timedelta(minutes=120)
         jwt_payload = {
             "sub": user_id,
             "exp": expire
