@@ -1,4 +1,4 @@
-<h1 align="center"> ApiFaceCheck </h1>
+<h1 align="center"> VisionApp - API </h1>
 
 <div align="center">
 
