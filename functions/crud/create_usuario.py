@@ -10,6 +10,7 @@ from functions.dependencias import get_ssp_usuario_db
 import config.models as models
 from config.database import ssp_usuario_engine
 from firebase_admin import auth
+from passlib.context import CryptContext
 
 
 
@@ -17,6 +18,9 @@ ssp_usuario_db_dependency = Annotated[Session, Depends(get_ssp_usuario_db)]
 
 SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
 
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def create_usuario(
     db: ssp_usuario_db_dependency,
@@ -36,12 +40,8 @@ def create_usuario(
     senha: str,
     nome_social: str = None
 ):
-    
-    
-    # CPF como "e-mail" fake para Firebase (não é bonito, mas funciona)
     fake_email = f"{cpf}@app.com"
 
-    # Cria o usuário no Firebase Authentication
     try:
         user = auth.create_user(
             email=fake_email,
@@ -52,7 +52,8 @@ def create_usuario(
     except auth.EmailAlreadyExistsError:
         return {"error": "Usuário já existe no Firebase"}
 
-    # Agora cria também no seu banco de dados local
+    hashed_password = pwd_context.hash(senha)
+
     db_usuario = models.Usuario(
         matricula=matricula,
         nome=nome,
@@ -68,22 +69,18 @@ def create_usuario(
         tipo_sanguineo=tipo_sanguineo,
         cargo=cargo,
         nivel_classe=nivel_classe,
-        senha=senha,
-        id_usuario=user.uid,  # Usa o UID gerado pelo Firebase
+        senha=hashed_password,
+        id_usuario=user.uid,
         data_criacao_conta=datetime.utcnow()
     )
     db.add(db_usuario)
 
-    try: db.commit()
-
+    try:
+        db.commit()
     except Exception as e:
-        # Revogar os tokens do usuário no Firebase (invalida o JWT atual)
         auth.revoke_refresh_tokens(db_usuario.id_usuario)
-
-        # Agora sim, deletar o usuário do Firebase
         auth.delete_user(db_usuario.id_usuario)
         raise HTTPException(status_code=500, detail=f"Erro ao remover usuário do Firebase: {str(e)}")
     
     db.refresh(db_usuario)
-
     return db_usuario

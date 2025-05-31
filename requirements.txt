@@ -3,6 +3,7 @@ anyio==4.9.0
 asttokens==3.0.0
 attrs==25.3.0
 backcall==0.2.0
+bcrypt==4.3.0
 beautifulsoup4==4.13.4
 bleach==6.2.0
 boto3==1.38.7
@@ -79,6 +80,7 @@ packaging==25.0
 pandas==2.2.3
 pandocfilters==1.5.1
 parso==0.8.4
+passlib==1.7.4
 pexpect==4.9.0
 pgvector==0.4.0
 pickleshare==0.7.5
