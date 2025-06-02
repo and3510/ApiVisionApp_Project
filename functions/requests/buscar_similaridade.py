@@ -56,7 +56,6 @@ def buscar_similaridade(
         })
 
     # Ordena pela menor distância
-    # Ordena pela menor distância
     similaridades.sort(key=lambda x: x["distancia"])
 
     # Define os limiares
@@ -93,8 +92,10 @@ def buscar_similaridade(
 
     # Caso 3: Nenhuma similaridade aceitável
     else:
+        menor_distancia = similaridades[0]["distancia"] if similaridades else None
         return JSONResponse(content={
-            "status": "nenhuma similaridade forte"
+            "status": "nenhuma similaridade forte",
+            "menor_distancia": menor_distancia
         })
     
 
