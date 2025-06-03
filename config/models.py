@@ -43,7 +43,6 @@ class Log_Resultado_Reconhecimento(SspUsuarioBase):
     id_usuario = Column(String(50), nullable=False)
     distancia = Column(String(45), nullable=False)
     cpf = Column(String(14), nullable=True)
-    nome_criminoso = Column(String(150), nullable=True)
     id_ficha = Column(String(30), nullable=True)
     status_reconhecimento = Column(String(90), nullable=False)
     data_ocorrido = Column(TIMESTAMP, nullable=False)
@@ -56,7 +55,6 @@ class Log_Resultado_Cpf(SspUsuarioBase):
     matricula = Column(String(10), primary_key=True, index=True)
     id_usuario = Column(String(50), nullable=False)
     cpf = Column(String(14), nullable=True)
-    nome_criminoso = Column(String(150), nullable=True)
     id_ficha = Column(String(30), nullable=True)
     data_ocorrido = Column(TIMESTAMP, nullable=False)
 
