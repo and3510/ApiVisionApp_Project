@@ -23,8 +23,10 @@ def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_
     
     identidade = ficha_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
 
-    if not identidade:
-        raise HTTPException(status_code=404, detail="Identidade não encontrada para o CPF fornecido.")
+
+    # if not identidade:
+    #     raise HTTPException(status_code=404, detail="Identidade não encontrada para o CPF fornecido.")
+
 
     ficha_criminal = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == cpf).first()
     crimes = []
