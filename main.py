@@ -122,7 +122,7 @@ async def get_buscar_ficha_criminal(
     user_db: ssp_usuario_db_dependency
 ):
     try:
-        return buscar_ficha_criminal(cpf,matricula, ficha_db, user_db)
+        return buscar_ficha_criminal(cpf, matricula, ficha_db, user_db)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
