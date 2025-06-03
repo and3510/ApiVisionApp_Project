@@ -119,7 +119,7 @@ async def get_buscar_ficha_criminal(
     cpf: str,
     matricula: str,
     ficha_db: ssp_criminosos_db_dependency,
-    user_db: ssp_usuarios_db_dependency
+    user_db: ssp_usuario_db_dependency
 ):
     try:
         return buscar_ficha_criminal(cpf,matricula, ficha_db, user_db)
