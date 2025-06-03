@@ -7,6 +7,8 @@ import config.models as models
 from config.database import ssp_criminosos_engine
 from uuid import uuid4
 from datetime import datetime
+import pytz 
+
 
 
 ssp_criminosos_db_dependency = Annotated[Session, Depends(get_ssp_criminosos_db)]
