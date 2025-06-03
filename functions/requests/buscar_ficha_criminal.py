@@ -14,12 +14,12 @@ ssp_criminosos_db_dependency = Annotated[Session, Depends(get_ssp_criminosos_db)
 
 SspCriminososBase.metadata.create_all(bind=ssp_criminosos_engine)
 
-ssp_usuarios_db_dependency = Annotated[Session, Depends(get_ssp_usuarios_db)]
+ssp_usuario_db_dependency = Annotated[Session, Depends(get_ssp_usuario_db)]
 
-SspUsuariosBase.metadata.create_all(bind=ssp_usuarios_engine)
+SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
 
 
-def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_dependency, user_db: ssp_usuarios_db_dependency):
+def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_dependency, user_db: ssp_usuario_db_dependency):
     # Verificar se o CPF existe na tabela Identidade
     identidade = ficha_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
     if not identidade:
