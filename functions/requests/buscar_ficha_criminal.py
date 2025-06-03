@@ -1,10 +1,10 @@
 from fastapi import Depends, HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
-from config.database import SspCriminososBase, SspUsuariosBase
-from functions.dependencias import get_ssp_criminosos_db, get_ssp_usuarios_db
+from config.database import SspCriminososBase, SspUsuarioBase
+from functions.dependencias import get_ssp_criminosos_db, get_ssp_usuario_db
 import config.models as models
-from config.database import ssp_criminosos_engine, ssp_usuarios_engine
+from config.database import ssp_criminosos_engine, ssp_usuario_engine
 from uuid import uuid4
 from datetime import datetime
 import pytz 
