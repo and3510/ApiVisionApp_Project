@@ -29,7 +29,7 @@ class Log_Entrada(SspUsuarioBase):
 
     __tablename__ = "log_entrada"
 
-    
+    id_entrada = Column(String(30), primary_key=True, index=True)
     matricula = Column(String(10), primary_key=True, index=True)
     id_usuario = Column(String(50), nullable=False)
     cpf = Column(String(14), nullable=False)
@@ -39,6 +39,7 @@ class Log_Entrada(SspUsuarioBase):
 class Log_Resultado_Reconhecimento(SspUsuarioBase):
     __tablename__ = "log_resultado_reconhecimento"
 
+    id_ocorrido = Column(String(30), primary_key=True, index=True)  # Gera um novo ID com no máximo 20 caracteres
     matricula = Column(String(10), primary_key=True, index=True)
     id_usuario = Column(String(50), nullable=False)
     distancia = Column(String(45), nullable=False)
@@ -52,6 +53,7 @@ class Log_Resultado_Reconhecimento(SspUsuarioBase):
 class Log_Resultado_Cpf(SspUsuarioBase):
     __tablename__ = "log_resultado_cpf"
 
+    id_ocorrido = Column(String(30), primary_key=True, index=True)
     matricula = Column(String(10), primary_key=True, index=True)
     id_usuario = Column(String(50), nullable=False)
     cpf = Column(String(14), nullable=True)

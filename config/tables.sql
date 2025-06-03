@@ -25,6 +25,7 @@ CREATE TABLE usuario (
 
 
 CREATE TABLE log_entrada (
+    id_entrada VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
     matricula VARCHAR(10) REFERENCES usuario(matricula),
     id_usuario VARCHAR(100),
     cpf VARCHAR(14) unique,
@@ -33,6 +34,7 @@ CREATE TABLE log_entrada (
 
 
 CREATE TABLE log_resultado_reconhecimento (
+    id_resultado_reconhecimento VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
     matricula VARCHAR(10) REFERENCES usuario(matricula),
     distancia VARCHAR(45) NOT NULL,
     id_usuario VARCHAR(100),
@@ -45,6 +47,7 @@ CREATE TABLE log_resultado_reconhecimento (
 
 
 CREATE TABLE log_resultado_cpf (
+    id_resultado_cpf VARCHAR(30) PRIMARY KEY DEFAULT gen_random_uuid(),
     matricula VARCHAR(10) REFERENCES usuario(matricula),
     id_usuario VARCHAR(100),
     cpf VARCHAR(14),
