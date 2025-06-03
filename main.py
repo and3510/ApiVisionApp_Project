@@ -117,7 +117,7 @@ async def get_buscar_similaridade(
 
 
 
-@app.get("/buscar-ficha-criminal/{cpf}")
+@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
 async def get_buscar_ficha_criminal(
     cpf: str, # <- Novo parâmetro obrigatório
     ficha_db: ssp_criminosos_db_dependency,
