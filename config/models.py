@@ -24,6 +24,33 @@ class Usuario(SspUsuarioBase):
     id_usuario = Column(String(50), nullable=False)
     data_criacao_conta = Column(TIMESTAMP, nullable=False)
 
+
+class Log_Entrada(SspUsuarioBase):
+
+    __tablename__ = "log_entrada"
+
+    
+    matricula = Column(String(9), primary_key=True, index=True))
+    id_usuario = Column(String(50), nullable=False)
+    cpf = Column(String(14), nullable=False)
+    data_entrada_conta = Column(TIMESTAMP, nullable=False)
+
+
+class Log_Resultado(SspUsuarioBase):
+    __tablename__ = "log_resultado"
+
+    matricula = Column(String(9), primary_key=True, index=True)
+    id_usuario = Column(String(50), nullable=False)
+    distancia = Column(String(45), nullable=False)
+    cpf = Column(String(14), nullable=True)
+    nome_criminoso = Column(String(150), nullable=True)
+    cpf_criminoso = Column(String(14), nullable=True)
+    id_ficha = Column(String(30), nullable=True)
+    status_reconhecimento = Column(String(90), nullable=False)
+    data_ocorrido = Column(TIMESTAMP, nullable=False)
+    status_crime = Column(String(20), nullable=True)   
+    url_facial_referencia = Column(String(200), nullable=True)
+
 class Identidade(SspCriminososBase):
     __tablename__ = "identidade"
 
