@@ -101,7 +101,7 @@ async def get_firebase_auth(
 
 
 
-@app.post("/buscar-similaridade-foto/",  dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
+@app.post("/buscar-similaridade-foto/", dependencies=[Depends(verify_crud_api_key)], tags=["Requisição do Aplicativo"])
 
 async def get_buscar_similaridade(
     ficha_db: ssp_criminosos_db_dependency,
@@ -117,7 +117,7 @@ async def get_buscar_similaridade(
 
 
 
-@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
+@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_crud_api_key)], tags=["Requisição do Aplicativo"])
 async def get_buscar_ficha_criminal(
     cpf: str, # <- Novo parâmetro obrigatório
     ficha_db: ssp_criminosos_db_dependency,
