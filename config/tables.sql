@@ -24,6 +24,29 @@ CREATE TABLE usuario (
 );
 
 
+CREATE TABLE log_entrada (
+    matricula VARCHAR(10) REFERENCES usuario(matricula),
+    id_usuario VARCHAR(100),
+    cpf VARCHAR(14) unique,
+    data_entrada_conta TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE log_resultado (
+    matricula VARCHAR(10) REFERENCES usuario(matricula),
+    distancia VARCHAR(45) NOT NULL,
+    id_usuario VARCHAR(100),
+    nome_criminoso VARCHAR(150),
+    cpf_criminoso VARCHAR(14),
+    id_ficha VARCHAR(30),
+    status_reconhecimento(VARCHAR(90), NOT NULL),
+    data_ocorrido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status_ficha VARCHAR(20) CHECK (status IN ('Em Aberto', 'Foragido')),
+    url_facial_referencia VARCHAR(200)
+);
+
+
+
 -- Banco de Dados SSP-CRIMINOSOS
 
 
