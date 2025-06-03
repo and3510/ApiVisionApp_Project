@@ -30,7 +30,7 @@ class Log_Entrada(SspUsuarioBase):
     __tablename__ = "log_entrada"
 
     
-    matricula = Column(String(9), primary_key=True, index=True))
+    matricula = Column(String(10), primary_key=True, index=True)
     id_usuario = Column(String(50), nullable=False)
     cpf = Column(String(14), nullable=False)
     data_entrada_conta = Column(TIMESTAMP, nullable=False)
@@ -39,7 +39,7 @@ class Log_Entrada(SspUsuarioBase):
 class Log_Resultado(SspUsuarioBase):
     __tablename__ = "log_resultado"
 
-    matricula = Column(String(9), primary_key=True, index=True)
+    matricula = Column(String(10), primary_key=True, index=True)
     id_usuario = Column(String(50), nullable=False)
     distancia = Column(String(45), nullable=False)
     cpf = Column(String(14), nullable=True)
