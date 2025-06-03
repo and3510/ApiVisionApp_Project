@@ -5,10 +5,6 @@ from config.database import SspCriminososBase
 from functions.dependencias import get_ssp_criminosos_db
 import config.models as models
 from config.database import ssp_criminosos_engine
-from uuid import uuid4
-from datetime import datetime
-import pytz 
-
 
 
 ssp_criminosos_db_dependency = Annotated[Session, Depends(get_ssp_criminosos_db)]
@@ -28,21 +24,6 @@ def buscar_ficha_criminal(cpf: str, ficha_db: ssp_criminosos_db_dependency):
     crimes = []
     if ficha_criminal:
         crimes = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal.id_ficha).all()
-
-    br_tz = pytz.timezone('America/Sao_Paulo')
-
-    
-    log_resultado_cpf = models.Log_Resultado_Cpf(
-        id_ocorrido=str(uuid4()).replace("-", "")[:30],  # Gera um novo ID com no máximo 20 caracteres
-        matricula=usuario.matricula,
-        data_ocorrido=datetime.now(br_tz).strftime("%H:%M:%S %d/%m/%Y"),  # Data atual
-        cpf=ficha_criminal.cpf,
-        id_usuario=usuario.id_usuario,
-        id_ficha=ficha_criminal.id_ficha
-    )
-    db.add(log_resultado_cpf)
-    db.commit()
-    db.refresh(log_resultado_cpf)
 
     # Construir a resposta
     resposta = {
