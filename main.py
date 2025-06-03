@@ -117,10 +117,12 @@ async def get_buscar_similaridade(
 
 async def get_buscar_ficha_criminal(
     cpf: str,
-    ficha_db: ssp_criminosos_db_dependency
+    matricula: str,
+    ficha_db: ssp_criminosos_db_dependency,
+    user_db: ssp_usuarios_db_dependency
 ):
     try:
-        return buscar_ficha_criminal(cpf, ficha_db)
+        return buscar_ficha_criminal(cpf,matricula, ficha_db, user_db)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
