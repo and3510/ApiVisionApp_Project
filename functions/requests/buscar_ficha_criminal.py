@@ -21,8 +21,11 @@ SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
 
 def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_dependency, user_db: ssp_usuario_db_dependency):
     
-    # Tenta buscar identidade
     identidade = ficha_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
+
+    if not identidade:
+        raise HTTPException(status_code=404, detail="Identidade não encontrada para o CPF fornecido.")
+
     ficha_criminal = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == cpf).first()
     crimes = []
 
