@@ -37,6 +37,7 @@ from functions.crud.update_ficha import update_ficha
 from functions.crud.create_crime import CrimeStatus, create_crime
 
 
+from fastapi import Query
 
 
 
@@ -104,28 +105,29 @@ async def get_firebase_auth(
 
 async def get_buscar_similaridade(
     ficha_db: ssp_criminosos_db_dependency,
-    file: UploadFile = File(...)
+    user_db: ssp_usuario_db_dependency,
+    file: UploadFile = File(...),
+    matricula: str = Query(...)
 ):
     try:
-        return buscar_similaridade(ficha_db, file)
+        return buscar_similaridade(matricula, ficha_db, user_db, file)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     
 
 
-@app.get("/buscar-ficha-criminal/{cpf}", dependencies=[Depends(verify_token)], tags=["Requisição do Aplicativo"])
 
+@app.get("/buscar-ficha-criminal/{cpf}")
 async def get_buscar_ficha_criminal(
-    cpf: str,
-    # matricula: str,
+    cpf: str, # <- Novo parâmetro obrigatório
     ficha_db: ssp_criminosos_db_dependency,
-    user_db: ssp_usuario_db_dependency
+    user_db: ssp_usuario_db_dependency,
+    matricula: str = Query(...), 
 ):
     try:
-        return buscar_ficha_criminal(cpf, ficha_db, user_db)
+        return buscar_ficha_criminal(cpf, matricula, ficha_db, user_db)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
-
 
 
 # CRUD 

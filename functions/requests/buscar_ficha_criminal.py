@@ -19,34 +19,31 @@ ssp_usuario_db_dependency = Annotated[Session, Depends(get_ssp_usuario_db)]
 SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
 
 
-def buscar_ficha_criminal(cpf: str, ficha_db: ssp_criminosos_db_dependency, user_db: ssp_usuario_db_dependency):
-    # Verificar se o CPF existe na tabela Identidade
+def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_dependency, user_db: ssp_usuario_db_dependency):
+    
+    # Tenta buscar identidade
     identidade = ficha_db.query(models.Identidade).filter(models.Identidade.cpf == cpf).first()
-    if not identidade:
-        raise HTTPException(status_code=404, detail="CPF não encontrado na tabela Identidade.")
-
-    # Verificar se o CPF possui ficha criminal
     ficha_criminal = ficha_db.query(models.FichaCriminal).filter(models.FichaCriminal.cpf == cpf).first()
     crimes = []
+
     if ficha_criminal:
         crimes = ficha_db.query(models.Crime).filter(models.Crime.id_ficha == ficha_criminal.id_ficha).all()
 
-    # usuario = user_db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
+    usuario = user_db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
 
-    # br_tz = pytz.timezone('America/Sao_Paulo')
+    br_tz = pytz.timezone('America/Sao_Paulo')
 
-    
-    # log_resultado_cpf = models.Log_Resultado_Cpf(
-    #     id_entrada=str(uuid4()).replace("-", "")[:30],  # Gera um novo ID com no máximo 20 caracteres
-    #     matricula=usuario.matricula,
-    #     data_entrada_conta=datetime.now(br_tz).strftime("%H:%M:%S %d/%m/%Y"),  # Data atual
-    #     cpf=ficha_criminal.cpf,
-    #     id_usuario=usuario.id_usuario,
-    #     id_ficha=ficha_criminal.id_ficha
-    # )
-    # db.add(log_resultado_cpf)
-    # db.commit()
-    # db.refresh(log_resultado_cpf)
+    log_resultado_cpf = models.Log_Resultado_Cpf(
+        id_ocorrido=str(uuid4()).replace("-", "")[:30],
+        matricula=usuario.matricula if usuario else None,
+        data_ocorrido=datetime.now(br_tz).strftime("%H:%M:%S %d/%m/%Y"),
+        cpf=cpf,
+        id_usuario=usuario.id_usuario if usuario else None,
+        id_ficha=ficha_criminal.id_ficha if ficha_criminal else None
+    )
+    user_db.add(log_resultado_cpf)
+    user_db.commit()
+    user_db.refresh(log_resultado_cpf)
 
     # Construir a resposta
     resposta = {

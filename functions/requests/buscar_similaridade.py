@@ -7,20 +7,29 @@ import os
 import face_recognition
 from fastapi.responses import JSONResponse
 import numpy as np
-from config.database import SspCriminososBase
+from config.database import SspCriminososBase, SspUsuarioBase
 from functions.clahe import aplicar_clahe
-from functions.dependencias import get_ssp_criminosos_db
+from functions.dependencias import get_ssp_criminosos_db, get_ssp_usuario_db
 import config.models as models
-from config.database import ssp_criminosos_engine
+from config.database import ssp_criminosos_engine, ssp_usuario_engine
+from uuid import uuid4
+from datetime import datetime
+import pytz 
 
 
 ssp_criminosos_db_dependency = Annotated[Session, Depends(get_ssp_criminosos_db)]
 
 SspCriminososBase.metadata.create_all(bind=ssp_criminosos_engine)
 
+ssp_usuario_db_dependency = Annotated[Session, Depends(get_ssp_usuario_db)]
+
+SspUsuarioBase.metadata.create_all(bind=ssp_usuario_engine)
+
 
 def buscar_similaridade(
+    matricula: str,
     ficha_db: ssp_criminosos_db_dependency,
+    user_db: ssp_usuario_db_dependency,
     file: UploadFile = File(...)
 ):
     temp_file = f"temp_{file.filename}"
@@ -35,11 +44,14 @@ def buscar_similaridade(
     if not encodings:
         raise HTTPException(status_code=400, detail="Nenhum rosto detectado.")
 
-
     vetor_facial = encodings[0]
     identidades = ficha_db.query(models.Identidade).all()
     if not identidades:
         raise HTTPException(status_code=404, detail="Nenhuma identidade encontrada no banco de dados.")
+
+    usuario = user_db.query(models.Usuario).filter(models.Usuario.matricula == matricula).first()
+
+    br_tz = pytz.timezone('America/Sao_Paulo')
 
     similaridades = []
     for identidade in identidades:
@@ -55,28 +67,57 @@ def buscar_similaridade(
             "distancia": distancia,
         })
 
-    # Ordena pela menor distância
     similaridades.sort(key=lambda x: x["distancia"])
 
-    # Define os limiares
     LIMIAR_CONFIANTE = 0.4
     LIMIAR_AMBÍGUO = 0.5
-
-    # Filtra os candidatos ambíguos
     ambiguos = [p for p in similaridades if p["distancia"] < LIMIAR_AMBÍGUO]
 
-    # Caso 1: Confiança Alta (menor que limiar confiante)
+    log = models.Log_Resultado_Reconhecimento(
+        id_ocorrido=str(uuid4()).replace("-", "")[:30],
+        matricula=usuario.matricula,
+        id_usuario=usuario.id_usuario,
+        distancia=str(round(similaridades[0]["distancia"], 4)),
+        cpf=similaridades[0]["cpf"] if similaridades else None,
+        id_ficha=None,  # Será preenchido abaixo, se existir
+        status_reconhecimento="nenhuma similaridade forte",
+        data_ocorrido=datetime.now(br_tz).strftime("%H:%M:%S %d/%m/%Y"),
+        url_facial_referencia=similaridades[0]["url_face"] if similaridades else None
+    )
+
     if ambiguos and ambiguos[0]["distancia"] < LIMIAR_CONFIANTE:
         identidade_confiante = ambiguos[0]
         ficha_criminal_info = buscar_ficha_criminal_completa(ficha_db, identidade_confiante["cpf"])
+        log.status_reconhecimento = "confiante"
+        log.cpf = identidade_confiante["cpf"]
+        log.url_facial_referencia = identidade_confiante["url_face"]
+
+        if ficha_criminal_info["ficha_criminal"]:
+            log.id_ficha = ficha_criminal_info["ficha_criminal"]["id_ficha"]
+
+        user_db.add(log)
+        user_db.commit()
+        user_db.refresh(log)
+
         return JSONResponse(content={
             "status": "confiante",
             "identidade": identidade_confiante,
             "ficha_criminal": ficha_criminal_info,
         })
 
-    # Caso 2: Ambiguidade (um ou mais abaixo do limiar ambíguo, mas nenhum confiável)
     elif len(ambiguos) > 0:
+        log.status_reconhecimento = "ambíguo"
+        log.cpf = ambiguos[0]["cpf"]
+        log.url_facial_referencia = ambiguos[0]["url_face"]
+
+        ficha_criminal_info = buscar_ficha_criminal_completa(ficha_db, ambiguos[0]["cpf"])
+        if ficha_criminal_info["ficha_criminal"]:
+            log.id_ficha = ficha_criminal_info["ficha_criminal"]["id_ficha"]
+
+        user_db.add(log)
+        user_db.commit()
+        user_db.refresh(log)
+
         resultados_ambiguos = []
         for identidade in ambiguos:
             ficha_criminal_info = buscar_ficha_criminal_completa(ficha_db, identidade["cpf"])
@@ -90,13 +131,17 @@ def buscar_similaridade(
             "possiveis_identidades": resultados_ambiguos
         })
 
-    # Caso 3: Nenhuma similaridade aceitável
     else:
+        user_db.add(log)
+        user_db.commit()
+        user_db.refresh(log)
+
         menor_distancia = similaridades[0]["distancia"] if similaridades else None
         return JSONResponse(content={
             "status": "nenhuma similaridade forte",
             "menor_distancia": menor_distancia
         })
+
     
 
 def buscar_ficha_criminal_completa(ficha_db, cpf):
