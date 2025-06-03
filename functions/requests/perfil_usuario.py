@@ -39,7 +39,7 @@ def perfil_usuario(
         id_entrada=str(uuid4()).replace("-", "")[:30],  # Gera um novo ID com no máximo 20 caracteres
         matricula=usuario.matricula,
         data_entrada_conta=datetime.now(br_tz).strftime("%H:%M:%S %d/%m/%Y"),  # Data atual
-        cpf=usuario.cpf
+        cpf=usuario.cpf,
         id_usuario=usuario.id_usuario
     )
     db.add(log_entrada)

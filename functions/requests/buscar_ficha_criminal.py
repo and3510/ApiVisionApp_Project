@@ -34,8 +34,8 @@ def buscar_ficha_criminal(cpf: str, ficha_db: ssp_criminosos_db_dependency):
         id_ocorrido=str(uuid4()).replace("-", "")[:30],  # Gera um novo ID com no máximo 20 caracteres
         matricula=usuario.matricula,
         data_ocorrido=datetime.now(br_tz).strftime("%H:%M:%S %d/%m/%Y"),  # Data atual
-        cpf=ficha_criminal.cpf
-        id_usuario=usuario.id_usuario
+        cpf=ficha_criminal.cpf,
+        id_usuario=usuario.id_usuario,
         id_ficha=ficha_criminal.id_ficha
     )
     db.add(log_resultado_cpf)
