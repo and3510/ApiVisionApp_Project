@@ -2,10 +2,10 @@ version: "3.9"
 
 services:
   app:
-    image: your-app-image:latest  # Substitua pela imagem real da sua aplicação
+    image: your_dockefile  # Substitua pela imagem real da sua aplicação
     container_name: app
     ports:
-      - "3000:3000"               # Altere para a porta que seu app utiliza
+      - "8000:3000"               # Altere para a porta que seu app utiliza
     depends_on:
       - postgresql
       - postgresql2
@@ -15,29 +15,29 @@ services:
       DB2_HOST: postgresql2
       MINIO_URL: http://minio:9000
 
-  postgresql:
-    image: postgres:15
-    container_name: postgresql
+  ssp_criminosos:
+    image: pgvector/pgvector:pg17
+    container_name: criminosos
     environment:
-      POSTGRES_USER: user1
-      POSTGRES_PASSWORD: password1
-      POSTGRES_DB: db1
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: senha123
+      POSTGRES_DB: ssp_criminosos
     ports:
       - "5432:5432"
     volumes:
-      - pgdata1:/var/lib/postgresql/data
+      - pgdata_criminosos:/var/lib/postgresql/data
 
-  postgresql2:
-    image: postgres:15
-    container_name: postgresql2
+  ssp_usuarios:
+    image: postgres:17
+    container_name: usuarios
     environment:
-      POSTGRES_USER: user2
-      POSTGRES_PASSWORD: password2
-      POSTGRES_DB: db2
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: senha123
+      POSTGRES_DB: ssp_usuario
     ports:
       - "5433:5432"  # Evita conflito de porta com o primeiro PostgreSQL
     volumes:
-      - pgdata2:/var/lib/postgresql/data
+      - pgdata_usuarios:/var/lib/postgresql/data
 
   minio:
     image: minio/minio
@@ -53,6 +53,6 @@ services:
       - minio-data:/data
 
 volumes:
-  pgdata1:
-  pgdata2:
+  pgdata_usuarios:
+  pgdata_criminosos:
   minio-data:
