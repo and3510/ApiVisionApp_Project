@@ -82,7 +82,7 @@ class FirebaseToken(BaseModel):
 
 
 
-@app.get("/usuario/perfil", tags=["Requisição do Aplicativo"], dependencies=[Depends(verify_token)])
+@app.get("/usuario/perfil", tags=["DEFAULT"], dependencies=[Depends(verify_token)])
 
 async def get_perfil_usuario(
     db: ssp_usuario_db_dependency,
