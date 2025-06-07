@@ -7,8 +7,8 @@ services:
     ports:
       - "8000:3000"               # Altere para a porta que seu app utiliza
     depends_on:
-      - postgresql
-      - postgresql2
+      - ssp_criminosos
+      - ssp_usuarios
       - minio
     environment:
       DB1_HOST: postgresql
