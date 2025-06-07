@@ -46,7 +46,7 @@ Este projeto consiste em uma API desenvolvida com FastAPI para reconhecimento fa
 
 | Código | Requisito |
 |--------|-----------|
-| RF01 | O sistema deve permitir o **cadastro de uma pessoa física** com os seguintes dados: CPF, nome completo, nome da mãe e imagem facial. |
+| RF01 | O sistema deve permitir o **cadastro de criminosos** com os seguintes dados: CPF, nome completo, nome da mãe e imagem facial. |
 | RF02 | O sistema deve permitir a **extração automática da face** a partir da imagem enviada. |
 | RF03 | O sistema deve **gerar e armazenar um vetor de 128 dimensões** representando a face da pessoa. |
 | RF04 | O sistema deve permitir o **registro de ficha criminal** apenas se o CPF já estiver cadastrado como pessoa física. |
