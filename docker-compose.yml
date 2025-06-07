@@ -10,10 +10,6 @@ services:
       - ssp_criminosos
       - ssp_usuarios
       - minio
-    environment:
-      DB1_HOST: postgresql
-      DB2_HOST: postgresql2
-      MINIO_URL: http://minio:9000
 
   ssp_criminosos:
     image: pgvector/pgvector:pg17
