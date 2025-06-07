@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  app:
+    image: your-app-image:latest  # Substitua pela imagem real da sua aplicação
+    container_name: app
+    ports:
+      - "3000:3000"               # Altere para a porta que seu app utiliza
+    depends_on:
+      - postgresql
+      - postgresql2
+      - minio
+    environment:
+      DB1_HOST: postgresql
+      DB2_HOST: postgresql2
+      MINIO_URL: http://minio:9000
+
+  postgresql:
+    image: postgres:15
+    container_name: postgresql
+    environment:
+      POSTGRES_USER: user1
+      POSTGRES_PASSWORD: password1
+      POSTGRES_DB: db1
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata1:/var/lib/postgresql/data
+
+  postgresql2:
+    image: postgres:15
+    container_name: postgresql2
+    environment:
+      POSTGRES_USER: user2
+      POSTGRES_PASSWORD: password2
+      POSTGRES_DB: db2
+    ports:
+      - "5433:5432"  # Evita conflito de porta com o primeiro PostgreSQL
+    volumes:
+      - pgdata2:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"  # Console web do MinIO
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+
+volumes:
+  pgdata1:
+  pgdata2:
+  minio-data:
