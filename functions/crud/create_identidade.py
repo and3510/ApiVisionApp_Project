@@ -35,6 +35,7 @@ def create_identidade(
     nome_mae: str,
     nome_pai: str,
     data_nascimento: str,
+    gemeo: bool = False,
     file: UploadFile = File(...)
 ):
     temp_file = f"temp_{file.filename}"
@@ -72,6 +73,7 @@ def create_identidade(
         nome_mae=nome_mae,
         data_nascimento=data_nascimento,
         vetor_facial=json.dumps(vetor_facial_reduzido),
+        gemeo=False,  # Definido como False por padrão
         url_facial=url  # Armazena a URL gerada pelo MinIO
     )
     db.add(db_ficha)
@@ -85,5 +87,6 @@ def create_identidade(
         "nome_pai": db_ficha.nome_pai,
         "data_nascimento": db_ficha.data_nascimento,
         "vetor_facial": vetor_facial_reduzido,
+        "gemeo": db_ficha.gemeo,  # Retorna o status de gêmeo
         "foto_url": db_ficha.url_facial  # Retorna a URL da foto
     }

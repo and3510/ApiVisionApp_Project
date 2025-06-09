@@ -64,6 +64,7 @@ def buscar_similaridade(
             "nome_pai": identidade.nome_pai,
             "data_nascimento": identidade.data_nascimento,
             "url_face": identidade.url_facial,
+            "gemeo": identidade.gemeo,
             "distancia": distancia,
         })
 
