@@ -74,7 +74,8 @@ CREATE TABLE identidade (
     nome_pai VARCHAR(150) NOT NULL,
     data_nascimento VARCHAR(20) NOT NULL,
     vetor_facial VECTOR(128) NOT NULL,
-    url_facial VARCHAR(200) NOT NULL
+    url_facial VARCHAR(200) NOT NULL,
+    gemeo BOOLEAN DEFAULT FALSE NOT NULL
 
 );
 

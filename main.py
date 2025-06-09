@@ -142,6 +142,7 @@ async def get_create_identidade(
     nome_mae: str,
     nome_pai: str,
     data_nascimento: str,
+    gemeo: bool = False,
     file: UploadFile = File(...)
 ):
     try:
@@ -152,6 +153,7 @@ async def get_create_identidade(
             nome_mae,
             nome_pai,
             data_nascimento,
+            gemeo,
             file
         )
     except HTTPException as e:

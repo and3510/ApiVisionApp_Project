@@ -70,6 +70,7 @@ class Identidade(SspCriminososBase):
     data_nascimento = Column(String(20), nullable=False)
     vetor_facial = Column(String(180), nullable=False)
     url_facial = Column(String(255), nullable=False)
+    gemeo = Column(Boolean, nullable=False, default=False)
 
 
 class FichaCriminal(SspCriminososBase):

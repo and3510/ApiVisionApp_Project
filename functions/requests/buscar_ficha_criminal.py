@@ -58,6 +58,7 @@ def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_
         "nome_pai": identidade.nome_pai,
         "data_nascimento": identidade.data_nascimento,
         "foto_url": identidade.url_facial,
+        "gemeo": identidade.gemeo,
         "ficha_criminal": {
             "id_ficha": ficha_criminal.id_ficha if ficha_criminal else None,
             "vulgo": ficha_criminal.vulgo,
