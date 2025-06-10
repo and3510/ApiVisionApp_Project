@@ -70,8 +70,8 @@ def buscar_similaridade(
 
     similaridades.sort(key=lambda x: x["distancia"])
 
-    LIMIAR_CONFIANTE = 0.4
-    LIMIAR_AMBÍGUO = 0.5
+    LIMIAR_CONFIANTE = 0.35
+    LIMIAR_AMBÍGUO = 0.55
     ambiguos = [p for p in similaridades if p["distancia"] < LIMIAR_AMBÍGUO]
 
     log = models.Log_Resultado_Reconhecimento(
