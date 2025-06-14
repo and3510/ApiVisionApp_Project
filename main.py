@@ -2,6 +2,7 @@
 
 
 
+from urllib import request
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,6 +24,7 @@ from dotenv import load_dotenv
 from functions.auth_utils import verify_token
 
 
+from functions.minio import proxy_object_by_cpf
 from functions.requests.auth_with_firebase import auth_with_firebase
 from functions.requests.buscar_ficha_criminal import buscar_ficha_criminal 
 from functions.requests.buscar_similaridade import buscar_similaridade
@@ -129,6 +131,10 @@ async def get_buscar_ficha_criminal(
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
+
+@app.get("/imagem-cpf/{cpf}", tags=["Requisição do Aplicativo"])
+async def get_imagem_por_cpf(cpf: str):
+    return proxy_object_by_cpf(cpf)
 
 # CRUD 
 

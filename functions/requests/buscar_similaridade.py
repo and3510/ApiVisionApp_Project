@@ -14,7 +14,9 @@ import config.models as models
 from config.database import ssp_criminosos_engine, ssp_usuario_engine
 from uuid import uuid4
 from datetime import datetime
-import pytz 
+import pytz
+
+from functions.minio import proxy_object_by_cpf 
 
 
 ssp_criminosos_db_dependency = Annotated[Session, Depends(get_ssp_criminosos_db)]
@@ -57,13 +59,16 @@ def buscar_similaridade(
     for identidade in identidades:
         vetor_facial_banco = np.array(json.loads(identidade.vetor_facial))
         distancia = np.linalg.norm(vetor_facial - vetor_facial_banco)
+        foto_url_result = proxy_object_by_cpf(identidade.cpf)
+        foto_url = foto_url_result["url"] if isinstance(foto_url_result, dict) and "url" in foto_url_result else None
         similaridades.append({
             "cpf": identidade.cpf,
             "nome": identidade.nome,
             "nome_mae": identidade.nome_mae,
             "nome_pai": identidade.nome_pai,
             "data_nascimento": identidade.data_nascimento,
-            "url_face": identidade.url_facial,
+            "url_face": foto_url,
+            "foto_parecida": identidade.url_facial,
             "gemeo": identidade.gemeo,
             "distancia": distancia,
         })
@@ -83,7 +88,7 @@ def buscar_similaridade(
         id_ficha=None,  # Será preenchido abaixo, se existir
         status_reconhecimento="nenhuma similaridade forte",
         data_ocorrido=datetime.now(br_tz).strftime("%H:%M:%S %d/%m/%Y"),
-        url_facial_referencia=similaridades[0]["url_face"] if similaridades else None
+        url_facial_referencia=similaridades[0]["foto_parecida"] if similaridades else None
     )
 
     if ambiguos and ambiguos[0]["distancia"] < LIMIAR_CONFIANTE:
@@ -91,7 +96,7 @@ def buscar_similaridade(
         ficha_criminal_info = buscar_ficha_criminal_completa(ficha_db, identidade_confiante["cpf"])
         log.status_reconhecimento = "confiante"
         log.cpf = identidade_confiante["cpf"]
-        log.url_facial_referencia = identidade_confiante["url_face"]
+        log.url_facial_referencia = identidade_confiante["foto_parecida"]
 
         if ficha_criminal_info["ficha_criminal"]:
             log.id_ficha = ficha_criminal_info["ficha_criminal"]["id_ficha"]
@@ -109,7 +114,7 @@ def buscar_similaridade(
     elif len(ambiguos) > 0:
         log.status_reconhecimento = "ambíguo"
         log.cpf = ambiguos[0]["cpf"]
-        log.url_facial_referencia = ambiguos[0]["url_face"]
+        log.url_facial_referencia = ambiguos[0]["foto_parecida"]
 
         ficha_criminal_info = buscar_ficha_criminal_completa(ficha_db, ambiguos[0]["cpf"])
         if ficha_criminal_info["ficha_criminal"]:
