@@ -1,3 +1,4 @@
+import os
 from fastapi import Depends, HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
@@ -7,7 +8,9 @@ import config.models as models
 from config.database import ssp_criminosos_engine, ssp_usuario_engine
 from uuid import uuid4
 from datetime import datetime
-import pytz 
+import pytz
+
+from functions.minio import proxy_object_by_cpf 
 
 
 ssp_criminosos_db_dependency = Annotated[Session, Depends(get_ssp_criminosos_db)]
@@ -50,6 +53,9 @@ def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_
     user_db.commit()
     user_db.refresh(log_resultado_cpf)
 
+    foto_url_result = proxy_object_by_cpf(cpf)
+    foto_url = foto_url_result["url"] if isinstance(foto_url_result, dict) and "url" in foto_url_result else None
+
     # Construir a resposta
     resposta = {
         "cpf": identidade.cpf,
@@ -57,7 +63,7 @@ def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_
         "nome_mae": identidade.nome_mae,
         "nome_pai": identidade.nome_pai,
         "data_nascimento": identidade.data_nascimento,
-        "foto_url": identidade.url_facial,
+        "foto_url": foto_url,
         "gemeo": identidade.gemeo,
         "ficha_criminal": {
             "id_ficha": ficha_criminal.id_ficha if ficha_criminal else None,
@@ -79,3 +85,4 @@ def buscar_ficha_criminal(cpf: str, matricula: str, ficha_db: ssp_criminosos_db_
     }
 
     return resposta
+
