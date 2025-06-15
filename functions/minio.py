@@ -127,7 +127,7 @@ def proxy_object_by_cpf(cpf: str):
                 url = s3.generate_presigned_url(
                     'get_object',
                     Params={'Bucket': bucket_name, 'Key': key},
-                    ExpiresIn=3600
+                    ExpiresIn=360
                 )
                 return {"url": url}
         raise HTTPException(status_code=404, detail="Imagem não encontrada para o CPF informado.")
