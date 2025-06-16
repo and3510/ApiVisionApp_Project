@@ -20,6 +20,7 @@
 * [Tecnologias](#tecnologias)
 * [Fluxo do Software](#fluxo-do-software)
 * [Dificuldades](#dificuldades)
+* [Ambiente_de_Testes](#ambiente-de-testes)
 * [Resultados](#resultados)
 * [Como_Usar](#como_usar)
 * [Conclusao](#conclusao)
@@ -122,6 +123,16 @@ Além disso, foi necessário modificar repetidamente as colunas das tabelas, dev
 ### Reconhecimento Facial
 
 Embora tivéssemos acesso a diversas fotos de rostos, a maioria não atendia aos critérios mínimos de qualidade estabelecidos: o rosto precisava estar centralizado, sem obstruções e bem iluminado. Como resultado, apenas 48 imagens foram consideradas adequadas e armazenadas no banco para uso no reconhecimento facial.
+
+
+## Ambiente de Testes
+
+- **Sistema Operacional:** Ubuntu 22.04.5 LTS (x86_64)
+- **Virtualização:** KVM/QEMU (pc-i440fx-9.0)
+- **Kernel:** 5.15.0-134-generic
+- **CPU:** AMD EPYC 9354P (2 vCPUs @ 3.25GHz)
+- **Memória RAM:** 8 GB (2.6 GB em uso durante testes)
+- **Uptime no momento do teste:** 89 dias
 
 
 
