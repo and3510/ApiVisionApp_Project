@@ -115,13 +115,30 @@ De acordo com diagrama da imagem, a autenticação é realizada via Firebase, ga
 
 ### Configuração
 
-Em varios momentos ocorreu Intenet server ERROR 500, devido erros na hora de enviar dados incorretos ao banco. Além disso, ocorreu problemas na privacidade com o Minio, entao para resolver isso deixamos o repositorio de imagem em privado e para poder acessar a imagem via url, utiliza o cpf encontrado par aveirficar ser ha uma imagem com o mesmo cpf, e com isso gera-se um url temporario para ser utilizado por 6 minutos.
+Em diversos momentos, ocorreram erros do tipo *Internal Server Error 500*, causados pelo envio de dados incorretos ao banco de dados. Também enfrentamos problemas relacionados à privacidade ao utilizar o MinIO. Para mitigar esse risco, optamos por tornar o repositório de imagens privado. Assim, para acessar uma imagem via URL, utilizamos o CPF como chave de verificação. Caso exista uma imagem associada ao mesmo CPF, é gerado um link temporário com validade de 6 minutos.
 
-E varios momentos, foi necesasrio alterar as colunas das tabelas, devido as alterçoes nos requisitos. O planejamento inicial do Banco nao foi feito corretamente.
+Além disso, foi necessário modificar repetidamente as colunas das tabelas, devido a mudanças nos requisitos ao longo do desenvolvimento. Isso evidenciou a ausência de um planejamento adequado na fase inicial da modelagem do banco de dados.
 
-### Reconhecimento facial
+### Reconhecimento Facial
+
+Embora tivéssemos acesso a diversas fotos de rostos, a maioria não atendia aos critérios mínimos de qualidade estabelecidos: o rosto precisava estar centralizado, sem obstruções e bem iluminado. Como resultado, apenas 48 imagens foram consideradas adequadas e armazenadas no banco para uso no reconhecimento facial.
 
 
+
+
+## Resultados
+
+<div align="center"> 
+
+![Imagem da Interface do FastApi](images/interface_FastApi.png)
+<p> Interface do FastApi para realização de Requisições </p>
+
+</div>
+
+A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão listadas as principais requisições que a aplicação móvel pode realizar. Entre elas, destaca-se o endpoint /auth/firebase, responsável pela autenticação via Firebase, e o ´/buscar-similaridade-foto´, que permite o envio de uma imagem para análise de similaridade facial. Além disso, o endpoint /buscar-ficha-criminal/{cpf} possibilita a consulta da ficha criminal a partir do CPF, enquanto o /usuario/perfil recupera os dados do perfil do usuário autenticado. Todas as rotas exigem autenticação, garantindo segurança nas interações entre o app e o servidor.
+
+
+### Reconhecimento Facial
 
 #### **Table I**
 
@@ -205,20 +222,6 @@ E varios momentos, foi necesasrio alterar as colunas das tabelas, devido as alte
 | Confiante                  | 3       | 0       |
 | Ambíguo                    | 9       | 12      |
 | Nenhuma Similaridade Forte | 0       | 0       |
-
-
-
-
-## Resultados
-
-<div align="center"> 
-
-![Imagem da Interface do FastApi](images/interface_FastApi.png)
-<p> Interface do FastApi para realização de Requisições </p>
-
-</div>
-
-A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão listadas as principais requisições que a aplicação móvel pode realizar. Entre elas, destaca-se o endpoint /auth/firebase, responsável pela autenticação via Firebase, e o ´/buscar-similaridade-foto´, que permite o envio de uma imagem para análise de similaridade facial. Além disso, o endpoint /buscar-ficha-criminal/{cpf} possibilita a consulta da ficha criminal a partir do CPF, enquanto o /usuario/perfil recupera os dados do perfil do usuário autenticado. Todas as rotas exigem autenticação, garantindo segurança nas interações entre o app e o servidor.
 
 
 
