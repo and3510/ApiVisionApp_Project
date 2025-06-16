@@ -131,7 +131,7 @@ Embora tivéssemos acesso a diversas fotos de rostos, a maioria não atendia aos
 - **Virtualização:** KVM/QEMU (pc-i440fx-9.0)
 - **Kernel:** 5.15.0-134-generic
 - **CPU:** AMD EPYC 9354P (2 vCPUs @ 3.25GHz)
-- **Memória RAM:** 8 GB (2.6 GB em uso durante testes)
+- **Memória RAM:** 8 GB
 - **Uptime no momento do teste:** 89 dias
 
 
