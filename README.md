@@ -108,6 +108,109 @@ FireAuth - Para Autentição com FireBase
 
 De acordo com diagrama da imagem, a autenticação é realizada via Firebase, garantindo o acesso seguro dos usuários por meio de tokens JWT. A API desenvolvida com FastAPI gerencia o recebimento de fotos, CPF e a autenticação, realizando o reconhecimento facial e a consulta de informações em bancos PostgreSQL e no serviço de armazenamento MinIO. O sistema permite identificar usuários ou suspeitos a partir da análise facial, cruzando dados com os cadastros existentes. Por fim, os resultados são retornados à aplicação móvel, completando o fluxo de verificação e resposta.
 
+
+
+
+## Dificuldades
+
+### Configuração
+
+Em varios momentos ocorreu Intenet server ERROR 500, devido erros na hora de enviar dados incorretos ao banco. Além disso, ocorreu problemas na privacidade com o Minio, entao para resolver isso deixamos o repositorio de imagem em privado e para poder acessar a imagem via url, utiliza o cpf encontrado par aveirficar ser ha uma imagem com o mesmo cpf, e com isso gera-se um url temporario para ser utilizado por 6 minutos.
+
+E varios momentos, foi necesasrio alterar as colunas das tabelas, devido as alterçoes nos requisitos. O planejamento inicial do Banco nao foi feito corretamente.
+
+### Reconhecimento facial
+
+
+
+#### **Table I**
+
+**Taxa de Sucesso e Tempo Médio por Requisição – Homens**
+
+| Intervalo  | Taxa de Sucesso | Tempo Médio (s) |
+| ---------- | --------------- | --------------- |
+| 1 segundo  | 97,33%          | 1,570           |
+| 2 segundos | 97,33%          | 1,718           |
+| 5 segundos | 97,33%          | 1,760           |
+
+---
+
+#### **Table II**
+
+**Taxa de Sucesso e Tempo Médio por Requisição – Mulheres**
+
+| Intervalo  | Taxa de Sucesso | Tempo Médio (s) |
+| ---------- | --------------- | --------------- |
+| 1 segundo  | 98,61%          | 1,688           |
+| 2 segundos | 98,61%          | 1,927           |
+| 5 segundos | 98,61%          | 1,968           |
+
+---
+
+#### **Table III**
+
+**Classificações de Similaridade – Homens (%)**
+
+| Tom de Pele | Intervalo | Confiante | Ambíguo | Nenhuma Similaridade Forte |
+| ----------- | --------- | --------- | ------- | -------------------------- |
+| Brancos     | 1 s       | 75,25     | 23,38   | 1,38                       |
+|             | 2 s       | 73,13     | 25,50   | 1,38                       |
+|             | 5 s       | 75,00     | 24,25   | 0,75                       |
+| Pardos      | 1 s       | 75,00     | 23,63   | 1,38                       |
+|             | 2 s       | 73,00     | 25,63   | 1,38                       |
+|             | 5 s       | 75,25     | 23,38   | 1,38                       |
+| Negros      | 1 s       | 48,50     | 44,75   | 6,75                       |
+|             | 2 s       | 49,38     | 43,88   | 6,75                       |
+|             | 5 s       | 47,25     | 46,00   | 6,75                       |
+
+---
+
+#### **Table IV**
+
+**Classificações de Similaridade – Mulheres (%)**
+
+| Tom de Pele | Intervalo | Confiante | Ambíguo | Nenhuma Similaridade Forte |
+| ----------- | --------- | --------- | ------- | -------------------------- |
+| Brancos     | 1 s       | 46,75     | 51,88   | 1,38                       |
+|             | 2 s       | 46,75     | 51,88   | 1,38                       |
+|             | 5 s       | 46,25     | 52,38   | 1,38                       |
+| Pardos      | 1 s       | 45,13     | 53,88   | 1,00                       |
+|             | 2 s       | 45,13     | 53,88   | 1,00                       |
+|             | 5 s       | 45,13     | 53,88   | 1,00                       |
+| Negros      | 1 s       | 42,38     | 55,63   | 1,99                       |
+|             | 2 s       | 42,38     | 55,63   | 1,99                       |
+|             | 5 s       | 42,38     | 55,63   | 1,99                       |
+
+---
+
+#### **Table V**
+
+**Matriz de Confusão Geral**
+
+| Categoria                | Homens | Mulheres | Total |
+| ------------------------ | ------ | -------- | ----- |
+| Verdadeiro Positivo (VP) | 450    | 329      | 779   |
+| Falso Negativo (FN)      | 198    | 319      | 517   |
+| Verdadeiro Negativo (VN) | 129    | 93       | 222   |
+| Falso Positivo (FP)      | 0      | 0        | 0     |
+
+---
+
+#### **Table VI**
+
+**Resultados do Teste com Gêmeos**
+
+| Classificação              | Gêmeo A | Gêmeo B |
+| -------------------------- | ------- | ------- |
+| Confiante                  | 3       | 0       |
+| Ambíguo                    | 9       | 12      |
+| Nenhuma Similaridade Forte | 0       | 0       |
+
+
+
+
+## Resultados
+
 <div align="center"> 
 
 ![Imagem da Interface do FastApi](images/interface_FastApi.png)
@@ -117,14 +220,6 @@ De acordo com diagrama da imagem, a autenticação é realizada via Firebase, ga
 
 A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão listadas as principais requisições que a aplicação móvel pode realizar. Entre elas, destaca-se o endpoint /auth/firebase, responsável pela autenticação via Firebase, e o ´/buscar-similaridade-foto´, que permite o envio de uma imagem para análise de similaridade facial. Além disso, o endpoint /buscar-ficha-criminal/{cpf} possibilita a consulta da ficha criminal a partir do CPF, enquanto o /usuario/perfil recupera os dados do perfil do usuário autenticado. Todas as rotas exigem autenticação, garantindo segurança nas interações entre o app e o servidor.
 
-
-
-
-
-## Dificuldades
-
-
-## Resultados
 
 
 ## Conclusao
