@@ -132,7 +132,6 @@ Embora tivéssemos acesso a diversas fotos de rostos, a maioria não atendia aos
 - **Kernel:** 5.15.0-134-generic
 - **CPU:** AMD EPYC 9354P (2 vCPUs @ 3.25GHz)
 - **Memória RAM:** 8 GB
-- **Uptime no momento do teste:** 89 dias
 
 
 
@@ -238,3 +237,11 @@ A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão
 
 ## Conclusao
 
+O projeto VisionApp - API demonstrou ser uma solução robusta e eficiente para reconhecimento facial voltado ao cadastro e monitoramento de indivíduos com registros criminais. Utilizando um ecossistema tecnológico moderno — incluindo FastAPI, PostgreSQL com vetores, Firebase, Docker, MinIO e bibliotecas como Dlib e face_recognition —, a aplicação foi capaz de realizar autenticação segura, vetorização facial e consultas precisas de ficha criminal.
+
+Apesar das dificuldades enfrentadas durante o desenvolvimento, como erros internos do servidor e a necessidade de imagens faciais com qualidade mínima, a equipe conseguiu superar os desafios e atingir uma taxa de sucesso elevada, especialmente nos testes de reconhecimento facial com tempos médios de resposta inferiores a 2 segundos.
+
+Os testes realizados demonstraram desempenho satisfatório, mesmo em casos de ambiguidade como gêmeos idênticos, e revelaram a importância de considerar variações de tonalidade de pele na precisão dos algoritmos. A ausência de falsos positivos evidencia o compromisso com a segurança e a confiabilidade do sistema.
+
+
+Com isso, o VisionApp se consolida como um bom protótipo para o estudo do modelo e serve como base para aprimoramentos e desenvolvimento de novos modelos voltados a aplicações de biometria e segurança pública, unindo desempenho técnico, boas práticas de desenvolvimento e preocupação ética com o tratamento de dados sensíveis.
