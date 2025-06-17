@@ -152,6 +152,8 @@ A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão
 
 #### **Table I**
 
+<div align="center"> 
+
 **Taxa de Sucesso e Tempo Médio por Requisição – Homens**
 
 | Intervalo  | Taxa de Sucesso | Tempo Médio (s) |
@@ -160,9 +162,16 @@ A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão
 | 2 segundos | 97,33%          | 1,718           |
 | 5 segundos | 97,33%          | 1,760           |
 
+
+</div>
+
+
 ---
 
 #### **Table II**
+
+
+<div align="center"> 
 
 **Taxa de Sucesso e Tempo Médio por Requisição – Mulheres**
 
@@ -172,9 +181,16 @@ A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão
 | 2 segundos | 98,61%          | 1,927           |
 | 5 segundos | 98,61%          | 1,968           |
 
+
+</div>
+
 ---
 
 #### **Table III**
+
+
+<div align="center"> 
+
 
 **Classificações de Similaridade – Homens (%)**
 
@@ -190,9 +206,18 @@ A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão
 |             | 2 s       | 49,38     | 43,88   | 6,75                       |
 |             | 5 s       | 47,25     | 46,00   | 6,75                       |
 
+
+</div>
+
+
+
 ---
 
 #### **Table IV**
+
+
+<div align="center"> 
+
 
 **Classificações de Similaridade – Mulheres (%)**
 
@@ -208,9 +233,16 @@ A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão
 |             | 2 s       | 42,38     | 55,63   | 1,99                       |
 |             | 5 s       | 42,38     | 55,63   | 1,99                       |
 
+
+</div>
+
+
 ---
 
 #### **Table V**
+
+<div align="center"> 
+
 
 **Matriz de Confusão Geral**
 
@@ -221,9 +253,17 @@ A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão
 | Verdadeiro Negativo (VN) | 129    | 93       | 222   |
 | Falso Positivo (FP)      | 0      | 0        | 0     |
 
+
+</div>
+
+
 ---
 
 #### **Table VI**
+
+
+<div align="center"> 
+
 
 **Resultados do Teste com Gêmeos**
 
@@ -233,6 +273,7 @@ A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão
 | Ambíguo                    | 9       | 12      |
 | Nenhuma Similaridade Forte | 0       | 0       |
 
+</div>
 
 
 ## Conclusao
