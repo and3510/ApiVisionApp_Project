@@ -22,7 +22,6 @@
 * [Dificuldades](#dificuldades)
 * [Ambiente_de_Testes](#ambiente-de-testes)
 * [Resultados](#resultados)
-* [Como_Usar](#como_usar)
 * [Conclusao](#conclusao)
 
 
