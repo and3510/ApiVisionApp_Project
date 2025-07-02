@@ -153,39 +153,22 @@ A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão
 
 <div align="center"> 
 
-**Taxa de Sucesso e Tempo Médio por Requisição – Homens**
+**Taxa de Sucesso e Tempo Médio por Requisição**
 
 | Intervalo  | Taxa de Sucesso | Tempo Médio (s) |
 | ---------- | --------------- | --------------- |
-| 1 segundo  | 97,33%          | 1,570           |
-| 2 segundos | 97,33%          | 1,718           |
-| 5 segundos | 97,33%          | 1,760           |
+| 1 segundo  | 97,97%          | 1,629           |
+| 2 segundos | 97,97%          | 1,823           |
+| 5 segundos | 97,97%          | 1,864           |
 
 
 </div>
 
 
 ---
+
 
 #### **Table II**
-
-
-<div align="center"> 
-
-**Taxa de Sucesso e Tempo Médio por Requisição – Mulheres**
-
-| Intervalo  | Taxa de Sucesso | Tempo Médio (s) |
-| ---------- | --------------- | --------------- |
-| 1 segundo  | 98,61%          | 1,688           |
-| 2 segundos | 98,61%          | 1,927           |
-| 5 segundos | 98,61%          | 1,968           |
-
-
-</div>
-
----
-
-#### **Table III**
 
 
 <div align="center"> 
@@ -212,7 +195,7 @@ A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão
 
 ---
 
-#### **Table IV**
+#### **Table III**
 
 
 <div align="center"> 
@@ -238,7 +221,7 @@ A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão
 
 ---
 
-#### **Table V**
+#### **Table IV**
 
 <div align="center"> 
 
@@ -258,7 +241,7 @@ A imagem apresenta a documentação da API desenvolvida com FastAPI, onde estão
 
 ---
 
-#### **Table VI**
+#### **Table V**
 
 
 <div align="center"> 
