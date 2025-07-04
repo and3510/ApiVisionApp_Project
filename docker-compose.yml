@@ -1,22 +1,13 @@
 version: "3.9"
 
 services:
-  app:
-    image: your_dockefile  # Substitua pela imagem real da sua aplicação
-    container_name: app
-    ports:
-      - "8000:3000"               # Altere para a porta que seu app utiliza
-    depends_on:
-      - ssp_criminosos
-      - ssp_usuarios
-      - minio
 
   ssp_criminosos:
     image: pgvector/pgvector:pg17
     container_name: criminosos
     environment:
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: senha123
+      POSTGRES_PASSWORD: #senha123
       POSTGRES_DB: ssp_criminosos
     ports:
       - "5432:5432"
@@ -28,7 +19,7 @@ services:
     container_name: usuarios
     environment:
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: senha123
+      POSTGRES_PASSWORD: #senha123
       POSTGRES_DB: ssp_usuario
     ports:
       - "5433:5432"  # Evita conflito de porta com o primeiro PostgreSQL
