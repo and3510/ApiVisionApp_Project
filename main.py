@@ -53,10 +53,9 @@ initialize_app(cred)
 
 # ----------- Carregar variáveis de ambiente -----------
 
-# app = FastAPI()
 
 app = FastAPI(
-    title="API SSP",
+    title="API VISIONAPP",
     docs_url=None,        # Desativa Swagger UI (/docs)
     redoc_url=None,       # Desativa Redoc (/redoc)
     openapi_url=None      # Desativa /openapi.json
