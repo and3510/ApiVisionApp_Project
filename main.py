@@ -53,7 +53,14 @@ initialize_app(cred)
 
 # ----------- Carregar variáveis de ambiente -----------
 
-app = FastAPI()
+# app = FastAPI()
+
+app = FastAPI(
+    title="API SSP",
+    docs_url=None,        # Desativa Swagger UI (/docs)
+    redoc_url=None,       # Desativa Redoc (/redoc)
+    openapi_url=None      # Desativa /openapi.json
+)
 
 app.add_middleware(
     CORSMiddleware,
